@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAJMC Mock Test | Journalism & Mass Communication</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d1b2a;
+    --navy2: #1b2d40;
+    --slate: #1e3a5f;
+    --glass: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --emerald: #10b981;
+    --emerald-glow: rgba(16,185,129,0.25);
+    --ruby: #ef4444;
+    --ruby-glow: rgba(239,68,68,0.25);
+    --gold: #f59e0b;
+    --gold-soft: rgba(245,158,11,0.15);
+    --text-primary: #f0f4f8;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #38bdf8;
+    --accent-glow: rgba(56,189,248,0.2);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background noise + gradient mesh */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(56,189,248,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(16,185,129,0.06) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 40% at 60% 30%, rgba(245,158,11,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body > * { position: relative; z-index: 1; }
+
+  /* ── Typography ── */
+  .font-editorial { font-family: 'Playfair Display', serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── Glass Cards ── */
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .glass-deep {
+    background: rgba(13,27,42,0.7);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--navy); }
+  ::-webkit-scrollbar-thumb { background: var(--slate); border-radius: 3px; }
+
+  /* ── Screens ── */
+  .screen { display: none; animation: fadeSlide 0.4s ease both; }
+  .screen.active { display: block; }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Navbar ── */
+  #navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,27,42,0.85);
+    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+  }
+
+  /* ── Subject Cards ── */
+  .subject-card {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border-radius: 16px;
+  }
+  .subject-card:hover { transform: translateY(-4px); }
+  .subject-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 16px;
+  }
+  .subject-card:hover::before { opacity: 1; }
+
+  .card-radio { border: 1px solid rgba(56,189,248,0.3); box-shadow: 0 0 32px rgba(56,189,248,0.08); }
+  .card-radio::before { background: rgba(56,189,248,0.04); }
+  .card-ict { border: 1px solid rgba(16,185,129,0.3); box-shadow: 0 0 32px rgba(16,185,129,0.08); }
+  .card-ict::before { background: rgba(16,185,129,0.04); }
+  .card-dev { border: 1px solid rgba(245,158,11,0.3); box-shadow: 0 0 32px rgba(245,158,11,0.08); }
+  .card-dev::before { background: rgba(245,158,11,0.04); }
+  .card-iconic { border: 1px solid rgba(168,85,247,0.3); box-shadow: 0 0 32px rgba(168,85,247,0.08); }
+  .card-iconic::before { background: rgba(168,85,247,0.04); }
+
+  /* ── Option Buttons ── */
+  .option-btn {
+    width: 100%;
+    text-align: left;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+    transform: translateX(4px);
+  }
+  .option-btn:disabled { cursor: not-allowed; }
+  .option-btn.correct {
+    border-color: var(--emerald) !important;
+    background: var(--emerald-glow) !important;
+    box-shadow: 0 0 20px var(--emerald-glow);
+    animation: pulse-green 0.4s ease;
+  }
+  .option-btn.incorrect {
+    border-color: var(--ruby) !important;
+    background: var(--ruby-glow) !important;
+    box-shadow: 0 0 20px var(--ruby-glow);
+    animation: pulse-red 0.4s ease;
+  }
+  .option-btn.reveal-correct {
+    border-color: var(--emerald) !important;
+    background: rgba(16,185,129,0.08) !important;
+  }
+
+  @keyframes pulse-green {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.01); }
+    100% { transform: scale(1); }
+  }
+  @keyframes pulse-red {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+    100% { transform: translateX(0); }
+  }
+
+  .option-label {
+    min-width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.2s;
+  }
+  .option-btn.correct .option-label { border-color: var(--emerald); color: var(--emerald); }
+  .option-btn.incorrect .option-label { border-color: var(--ruby); color: var(--ruby); }
+  .option-btn.reveal-correct .option-label { border-color: var(--emerald); color: var(--emerald); }
+
+  /* ── Progress Bar ── */
+  .progress-track {
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--emerald));
+    transition: width 0.4s ease;
+    box-shadow: 0 0 12px rgba(56,189,248,0.5);
+  }
+
+  /* ── Timer ── */
+  .timer-ring {
+    position: relative;
+    width: 72px;
+    height: 72px;
+  }
+  .timer-ring svg { transform: rotate(-90deg); }
+  .timer-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 4; }
+  .timer-ring .ring-fg {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 188.5;
+    transition: stroke-dashoffset 1s linear, stroke 0.3s;
+  }
+  .timer-ring .ring-fg.warning { stroke: var(--gold); }
+  .timer-ring .ring-fg.danger { stroke: var(--ruby); }
+  .timer-display {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  /* ── Difficulty Badge ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .badge-easy { background: rgba(16,185,129,0.15); color: var(--emerald); border: 1px solid rgba(16,185,129,0.3); }
+  .badge-moderate { background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
+  .badge-hard { background: rgba(239,68,68,0.15); color: var(--ruby); border: 1px solid rgba(239,68,68,0.3); }
+
+  /* ── Toggle Switch ── */
+  .lang-toggle {
+    position: relative;
+    display: inline-flex;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--glass-border);
+    border-radius: 99px;
+    padding: 3px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .lang-toggle span {
+    padding: 5px 14px;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.25s;
+    color: var(--text-muted);
+  }
+  .lang-toggle span.active-lang {
+    background: linear-gradient(135deg, var(--accent), #818cf8);
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(56,189,248,0.3);
+  }
+
+  /* ── Results ── */
+  .score-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 3px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 40% 40%, rgba(56,189,248,0.1), transparent);
+    position: relative;
+  }
+  .score-circle::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid rgba(56,189,248,0.2);
+  }
+
+  .result-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, #818cf8 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(56,189,248,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(56,189,248,0.4); }
+
+  .btn-secondary {
+    background: var(--glass);
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+    padding: 11px 24px;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); background: var(--accent-glow); }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .subject-grid { grid-template-columns: 1fr !important; }
+    .timer-ring { width: 56px; height: 56px; }
+    .timer-display { font-size: 0.8rem; }
+  }
+
+  /* ── Highlight number ── */
+  .stat-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  /* Nav dot indicator */
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  /* Question number pill */
+  .q-pill {
+    background: rgba(56,189,248,0.1);
+    border: 1px solid rgba(56,189,248,0.25);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  /* Score ring animation */
+  @keyframes scoreReveal {
+    from { transform: scale(0.6); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .score-animate { animation: scoreReveal 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+  /* Ticker for correct/wrong feedback */
+  .feedback-ticker {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    z-index: 999;
+    animation: tickerAnim 1.8s ease forwards;
+    pointer-events: none;
+  }
+  .feedback-ticker.correct { background: rgba(16,185,129,0.9); color: #fff; }
+  .feedback-ticker.incorrect { background: rgba(239,68,68,0.9); color: #fff; }
+  @keyframes tickerAnim {
+    0% { opacity: 0; transform: translateY(-10px) scale(0.9); }
+    20% { opacity: 1; transform: translateY(0) scale(1); }
+    70% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-10px); }
+  }
+
+  select {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+  }
+  select option { background: #1b2d40; }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div style="max-width:1100px; margin:0 auto; padding: 14px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="nav-dot"></div>
+      <span class="font-editorial" style="font-size:1.1rem; font-weight:700;" id="nav-title">MAJMC Mock Tests</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+      <div class="lang-toggle" onclick="toggleLang()">
+        <span id="lang-en" class="active-lang">EN</span>
+        <span id="lang-hi">हि</span>
+      </div>
+      <button class="btn-secondary" id="home-btn" onclick="goHome()" style="display:none; padding:8px 16px; font-size:0.85rem;">
+        ← <span data-en="Home" data-hi="होम">Home</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- SCREEN: HOME / DASHBOARD -->
+<div id="screen-home" class="screen active" style="max-width:1100px; margin:0 auto; padding:40px 20px;">
+
+  <!-- Hero -->
+  <div style="text-align:center; margin-bottom:48px;">
+    <div style="display:inline-block; padding:6px 16px; border-radius:99px; border:1px solid rgba(56,189,248,0.3); background:rgba(56,189,248,0.08); font-size:0.78rem; font-weight:600; letter-spacing:0.1em; color:var(--accent); text-transform:uppercase; margin-bottom:18px;" data-en="Semester II · MAJMC · 2025–26" data-hi="सेमेस्टर II · MAJMC · 2025–26">Semester II · MAJMC · 2025–26</div>
+    <h1 class="font-editorial" style="font-size:clamp(2rem,5vw,3.4rem); font-weight:900; line-height:1.1; margin-bottom:14px;">
+      <span data-en="Master the Press." data-hi="पत्रकारिता में महारत हासिल करें।">Master the Press.</span><br>
+      <span style="background:linear-gradient(135deg,var(--accent),#818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;" data-en="Ace Every Exam." data-hi="हर परीक्षा में सफल हों।">Ace Every Exam.</span>
+    </h1>
+    <p style="color:var(--text-secondary); max-width:540px; margin:0 auto; line-height:1.7;" data-en="Adaptive mock tests from your actual question banks. Tiered scoring, instant feedback, bilingual support." data-hi="आपके वास्तविक प्रश्न बैंक से अनुकूलित मॉक टेस्ट। स्तरीय स्कोरिंग, त्वरित फीडबैक, द्विभाषी समर्थन।">
+      Adaptive mock tests from your actual question banks. Tiered scoring, instant feedback, bilingual support.
+    </p>
+  </div>
+
+  <!-- Subject Cards -->
+  <div class="subject-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:20px; margin-bottom:40px;">
+
+    <div class="subject-card glass card-radio" onclick="selectSubject('radio')" style="padding:28px;">
+      <div style="font-size:2.2rem; margin-bottom:14px;">📻</div>
+      <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin-bottom:6px;" data-en="Course Code: 01196003" data-hi="कोर्स कोड: 01196003">Course Code: 01196003</div>
+      <h3 class="font-editorial" style="font-size:1.3rem; font-weight:700; margin-bottom:8px;" data-en="Radio Broadcasting" data-hi="रेडियो प्रसारण">Radio Broadcasting</h3>
+      <p style="color:var(--text-secondary); font-size:0.85rem; line-height:1.6; margin-bottom:16px;" data-en="History, technology, AIR, community & internet radio, production techniques." data-hi="इतिहास, प्रौद्योगिकी, AIR, सामुदायिक और इंटरनेट रेडियो, उत्पादन तकनीक।">History, technology, AIR, community & internet radio, production techniques.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-easy">247 Qs</span>
+        <span class="badge badge-moderate">5 Units</span>
+      </div>
+    </div>
+
+    <div class="subject-card glass card-ict" onclick="selectSubject('ict')" style="padding:28px;">
+      <div style="font-size:2.2rem; margin-bottom:14px;">💻</div>
+      <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--emerald); margin-bottom:6px;" data-en="Course Code: 01196004" data-hi="कोर्स कोड: 01196004">Course Code: 01196004</div>
+      <h3 class="font-editorial" style="font-size:1.3rem; font-weight:700; margin-bottom:8px;" data-en="Information & Comm. Technology" data-hi="सूचना एवं संचार प्रौद्योगिकी">Information & Comm. Technology</h3>
+      <p style="color:var(--text-secondary); font-size:0.85rem; line-height:1.6; margin-bottom:16px;" data-en="Computers, internet, multimedia, digital tools & emerging technologies." data-hi="कंप्यूटर, इंटरनेट, मल्टीमीडिया, डिजिटल टूल्स और उभरती प्रौद्योगिकियाँ।">Computers, internet, multimedia, digital tools & emerging technologies.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-easy">250 Qs</span>
+        <span class="badge badge-moderate">5 Units</span>
+      </div>
+    </div>
+
+    <div class="subject-card glass card-dev" onclick="selectSubject('dev')" style="padding:28px;">
+      <div style="font-size:2.2rem; margin-bottom:14px;">🌐</div>
+      <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:6px;" data-en="Semester: II" data-hi="सेमेस्टर: II">Semester: II</div>
+      <h3 class="font-editorial" style="font-size:1.3rem; font-weight:700; margin-bottom:8px;" data-en="Development & International Comm." data-hi="विकास एवं अंतर्राष्ट्रीय संचार">Development & International Comm.</h3>
+      <p style="color:var(--text-secondary); font-size:0.85rem; line-height:1.6; margin-bottom:16px;" data-en="HDI, theories of development, media's role, international organizations & NWICO." data-hi="HDI, विकास के सिद्धांत, मीडिया की भूमिका, अंतर्राष्ट्रीय संगठन और NWICO।">HDI, theories of development, media's role, international organizations & NWICO.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-easy">200 Qs</span>
+        <span class="badge badge-moderate">4 Units</span>
+      </div>
+    </div>
+
+    <div class="subject-card glass card-iconic" onclick="selectSubject('iconic')" style="padding:28px;">
+      <div style="font-size:2.2rem; margin-bottom:14px;">🏛️</div>
+      <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:#c084fc; margin-bottom:6px;" data-en="Course Code: 02196002" data-hi="कोर्स कोड: 02196002">Course Code: 02196002</div>
+      <h3 class="font-editorial" style="font-size:1.3rem; font-weight:700; margin-bottom:8px;" data-en="Iconic Personalities of Media" data-hi="मीडिया की प्रतिष्ठित हस्तियाँ">Iconic Personalities of Media</h3>
+      <p style="color:var(--text-secondary); font-size:0.85rem; line-height:1.6; margin-bottom:16px;" data-en="Post-independence media, freedom struggle, Constitution, journalism personalities." data-hi="स्वतंत्रता के बाद का मीडिया, स्वतंत्रता संग्राम, संविधान, पत्रकारिता हस्तियाँ।">Post-independence media, freedom struggle, Constitution, journalism personalities.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-easy">190 Qs</span>
+        <span class="badge badge-moderate">2 Units</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scoring Legend -->
+  <div class="glass" style="border-radius:16px; padding:24px; max-width:600px; margin:0 auto;">
+    <h4 class="font-editorial" style="font-size:1rem; margin-bottom:16px; text-align:center; color:var(--text-secondary);" data-en="Tiered Scoring System" data-hi="स्तरीय स्कोरिंग प्रणाली">Tiered Scoring System</h4>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; text-align:center;">
+      <div>
+        <div class="stat-number" style="color:var(--emerald);">1</div>
+        <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;" data-en="mark · Easy" data-hi="अंक · आसान">mark · Easy</div>
+      </div>
+      <div>
+        <div class="stat-number" style="color:var(--gold);">5</div>
+        <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;" data-en="marks · Medium" data-hi="अंक · मध्यम">marks · Medium</div>
+      </div>
+      <div>
+        <div class="stat-number" style="color:var(--ruby);">10</div>
+        <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;" data-en="marks · Hard" data-hi="अंक · कठिन">marks · Hard</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: EXAM CONFIG -->
+<div id="screen-config" class="screen" style="max-width:680px; margin:0 auto; padding:40px 20px;">
+  <div class="glass" style="border-radius:20px; padding:36px;">
+    <div id="config-icon" style="font-size:2.8rem; margin-bottom:16px;"></div>
+    <h2 class="font-editorial" id="config-title" style="font-size:1.8rem; font-weight:700; margin-bottom:8px;"></h2>
+    <p id="config-desc" style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:28px; line-height:1.7;"></p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+      <div>
+        <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:8px;" data-en="Unit Filter" data-hi="यूनिट फ़िल्टर">Unit Filter</label>
+        <select id="unit-filter" style="width:100%;">
+          <option value="all" data-en="All Units" data-hi="सभी यूनिट">All Units</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:8px;" data-en="Number of Questions" data-hi="प्रश्नों की संख्या">Number of Questions</label>
+        <select id="q-count" style="width:100%;">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="30" selected>30</option>
+          <option value="50">50</option>
+          <option value="all" data-en="All Questions" data-hi="सभी प्रश्न">All Questions</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:8px;" data-en="Difficulty Filter" data-hi="कठिनाई फ़िल्टर">Difficulty Filter</label>
+        <select id="diff-filter" style="width:100%;">
+          <option value="all" data-en="All Levels" data-hi="सभी स्तर">All Levels</option>
+          <option value="easy" data-en="Easy (1 mark)" data-hi="आसान (1 अंक)">Easy (1 mark)</option>
+          <option value="moderate" data-en="Moderate (5 marks)" data-hi="मध्यम (5 अंक)">Moderate (5 marks)</option>
+          <option value="hard" data-en="Hard (10 marks)" data-hi="कठिन (10 अंक)">Hard (10 marks)</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:8px;" data-en="Timer per Question" data-hi="प्रति प्रश्न समय">Timer per Question</label>
+        <select id="timer-setting" style="width:100%;">
+          <option value="0" data-en="No Timer" data-hi="कोई टाइमर नहीं">No Timer</option>
+          <option value="30">30 seconds</option>
+          <option value="45" selected>45 seconds</option>
+          <option value="60">60 seconds</option>
+          <option value="90">90 seconds</option>
+          <option value="120">2 minutes</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button class="btn-secondary" onclick="goHome()"><span data-en="Cancel" data-hi="रद्द करें">Cancel</span></button>
+      <button class="btn-primary" onclick="startExam()">🚀 <span data-en="Start Test" data-hi="टेस्ट शुरू करें">Start Test</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: EXAM -->
+<div id="screen-exam" class="screen" style="max-width:800px; margin:0 auto; padding:24px 20px;">
+
+  <!-- Exam Header -->
+  <div class="glass" style="border-radius:16px; padding:16px 20px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+      <div id="exam-subject-name" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:2px;"></div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="q-pill" id="q-counter">Q 1 / 30</span>
+        <span id="diff-badge"></span>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <div id="score-display" style="text-align:right;">
+        <div style="font-size:0.72rem; color:var(--text-secondary);" data-en="Score" data-hi="स्कोर">Score</div>
+        <div class="font-mono" style="font-size:1.2rem; color:var(--accent);" id="live-score">0</div>
+      </div>
+      <!-- Timer Ring -->
+      <div class="timer-ring" id="timer-ring" style="display:none;">
+        <svg viewBox="0 0 72 72" width="72" height="72">
+          <circle class="ring-bg" cx="36" cy="36" r="30"/>
+          <circle class="ring-fg" id="ring-fg" cx="36" cy="36" r="30" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-display" id="timer-display">45</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-track" style="margin-bottom:24px;">
+    <div class="progress-fill" id="progress-fill" style="width:0%;"></div>
+  </div>
+
+  <!-- Question -->
+  <div class="glass" style="border-radius:20px; padding:28px; margin-bottom:20px;" id="question-card">
+    <p id="question-text" style="font-size:1.05rem; line-height:1.75; font-weight:500; margin-bottom:24px;"></p>
+    <div id="options-container" style="display:flex; flex-direction:column; gap:10px;"></div>
+  </div>
+
+  <!-- Nav Buttons -->
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div id="feedback-msg" style="font-size:0.85rem; color:var(--text-secondary); min-height:20px;"></div>
+    <button class="btn-primary" id="next-btn" onclick="nextQuestion()" style="display:none;">
+      <span id="next-btn-text" data-en="Next →" data-hi="अगला →">Next →</span>
+    </button>
+  </div>
+</div>
+
+<!-- SCREEN: RESULTS -->
+<div id="screen-results" class="screen" style="max-width:760px; margin:0 auto; padding:40px 20px;">
+  <div class="glass" style="border-radius:20px; padding:36px;">
+    <div style="text-align:center; margin-bottom:32px;">
+      <h2 class="font-editorial" style="font-size:2rem; font-weight:700; margin-bottom:6px;" data-en="Test Complete!" data-hi="टेस्ट पूरा हुआ!">Test Complete!</h2>
+      <p style="color:var(--text-secondary); font-size:0.9rem;" id="results-subject-name"></p>
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:center; gap:40px; flex-wrap:wrap; margin-bottom:36px;">
+      <div class="score-circle score-animate" id="score-circle">
+        <div class="stat-number" id="final-score" style="color:var(--accent);">0</div>
+        <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;" data-en="/ max marks" data-hi="/ अधिकतम अंक">/ max marks</div>
+        <div class="font-mono" id="max-score" style="font-size:0.9rem; color:var(--text-muted);">0</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="result-row" style="gap:24px;">
+          <span style="color:var(--text-secondary); font-size:0.9rem;" data-en="✅ Correct" data-hi="✅ सही">✅ Correct</span>
+          <span class="font-mono" id="res-correct" style="color:var(--emerald); font-size:1.1rem;">0</span>
+        </div>
+        <div class="result-row" style="gap:24px;">
+          <span style="color:var(--text-secondary); font-size:0.9rem;" data-en="❌ Incorrect" data-hi="❌ गलत">❌ Incorrect</span>
+          <span class="font-mono" id="res-incorrect" style="color:var(--ruby); font-size:1.1rem;">0</span>
+        </div>
+        <div class="result-row" style="gap:24px;">
+          <span style="color:var(--text-secondary); font-size:0.9rem;" data-en="⏭ Skipped" data-hi="⏭ छोड़ा">⏭ Skipped</span>
+          <span class="font-mono" id="res-skipped" style="color:var(--gold); font-size:1.1rem;">0</span>
+        </div>
+        <div class="result-row" style="gap:24px; border:none;">
+          <span style="color:var(--text-secondary); font-size:0.9rem;" data-en="📊 Accuracy" data-hi="📊 सटीकता">📊 Accuracy</span>
+          <span class="font-mono" id="res-accuracy" style="color:var(--accent); font-size:1.1rem;">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grade Message -->
+    <div id="grade-msg" class="glass" style="border-radius:12px; padding:16px 20px; text-align:center; margin-bottom:28px; border-color:rgba(56,189,248,0.2);">
+      <span id="grade-text" style="font-size:0.95rem;"></span>
+    </div>
+
+    <!-- Wrong Answers Review -->
+    <div id="review-section" style="margin-bottom:28px; display:none;">
+      <h3 class="font-editorial" style="font-size:1.1rem; margin-bottom:16px;" data-en="Review Missed Questions" data-hi="छूटे प्रश्न देखें">Review Missed Questions</h3>
+      <div id="review-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <button class="btn-primary" onclick="retakeTest()">🔄 <span data-en="Retake Test" data-hi="दोबारा टेस्ट दें">Retake Test</span></button>
+      <button class="btn-secondary" onclick="goHome()">🏠 <span data-en="Choose Subject" data-hi="विषय चुनें">Choose Subject</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  QUESTION BANK
+//  Format for each question:
+//  { q: "Question text", opts: ["A","B","C","D"], ans: 0, diff: "easy"|"moderate"|"hard", unit: "Unit 1",
+//    qHi: "Hindi question", optsHi: ["A","B","C","D"] }
+//
+//  HOW TO ADD MORE QUESTIONS:
+//  1. Find the subject's array (e.g. questionBank.radio)
+//  2. Add a new object following the format above
+//  3. ans: is the 0-based index of the correct option (0=A, 1=B, 2=C, 3=D)
+//  4. diff: "easy" (1 mark), "moderate" (5 marks), "hard" (10 marks)
+//  5. Hindi fields (qHi, optsHi) are optional — they fallback to English
+// ═══════════════════════════════════════════════
+
+const questionBank = {
+
+  radio: [
+    // UNIT 1 — History & Types of Radio
+    { q:"What is the main objective of the Radio course?", opts:["To study television broadcasting","To understand the history and development of radio","To learn film production","To analyze print media"], ans:1, diff:"easy", unit:"Unit 1", qHi:"रेडियो कोर्स का मुख्य उद्देश्य क्या है?", optsHi:["टेलीविज़न प्रसारण का अध्ययन करना","रेडियो के इतिहास और विकास को समझना","फ़िल्म निर्माण सीखना","प्रिंट मीडिया का विश्लेषण करना"] },
+    { q:"Which frequencies are used in radio transmission?", opts:["SW, MW, FM","AM, FM, TV","Only SW","Only FM"], ans:0, diff:"easy", unit:"Unit 1", qHi:"रेडियो प्रसारण में कौन सी आवृत्तियाँ उपयोग की जाती हैं?", optsHi:["SW, MW, FM","AM, FM, TV","केवल SW","केवल FM"] },
+    { q:"AM stands for:", opts:["Amplitude Modulation","Audio Modulation","Amplitude Media","Audio Media"], ans:0, diff:"easy", unit:"Unit 1", qHi:"AM का अर्थ है:", optsHi:["आयाम मॉड्यूलेशन","ऑडियो मॉड्यूलेशन","आयाम मीडिया","ऑडियो मीडिया"] },
+    { q:"FM stands for:", opts:["Frequency Modulation","Frequency Media","Fixed Modulation","Full Media"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"Which type of radio uses the internet?", opts:["AM radio","FM radio","Internet radio","CR radio"], ans:2, diff:"easy", unit:"Unit 1" },
+    { q:"Community Radio is managed by:", opts:["Government only","Private companies","Community organizations","Educational institutions only"], ans:2, diff:"easy", unit:"Unit 1" },
+    { q:"Gyanwani is an example of:", opts:["Commercial radio","Educational radio","Community radio","Internet radio"], ans:1, diff:"moderate", unit:"Unit 1" },
+    { q:"The evolution of radio in India includes:", opts:["Public service broadcasting","Private TV channels","Film production","Print media"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"Which radio type is used for short-wave transmission?", opts:["FM","AM","SW","MW"], ans:2, diff:"moderate", unit:"Unit 1" },
+    { q:"Radio broadcasting history involves:", opts:["Only technical aspects","Social and cultural impact","Only financial aspects","Only political aspects"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"What does AIR stand for?", opts:["All India Radio","Audio Information Radio","Advanced Internet Radio","Amplitude Information Radio"], ans:0, diff:"easy", unit:"Unit 1", qHi:"AIR का पूर्ण रूप क्या है?", optsHi:["ऑल इंडिया रेडियो","ऑडियो इन्फॉर्मेशन रेडियो","एडवांस्ड इंटरनेट रेडियो","एम्प्लीट्यूड इन्फॉर्मेशन रेडियो"] },
+    { q:"The organizational structure of AIR includes:", opts:["News departments","Production units","Management of channels","All of the above"], ans:3, diff:"moderate", unit:"Unit 1" },
+    { q:"Community Radio focuses on:", opts:["National news","Local community issues","International news","Entertainment only"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Educational radio programs are designed for:", opts:["Entertainment","Learning purposes","Advertising","Political propaganda"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Radio frequencies are divided into:", opts:["Two bands","Three bands (SW, MW, FM)","Four bands","Five bands"], ans:1, diff:"moderate", unit:"Unit 1" },
+    { q:"Which organization regulates radio in India?", opts:["TRAI","Ministry of Information and Broadcasting","PRASAR BHARATI","All of the above"], ans:3, diff:"hard", unit:"Unit 1" },
+    { q:"Prasar Bharati was established in:", opts:["1997","1990","2000","1985"], ans:0, diff:"hard", unit:"Unit 1" },
+    { q:"All India Radio was established in:", opts:["1927","1935","1947","1950"], ans:0, diff:"hard", unit:"Unit 1" },
+    { q:"Vividh Bharati is a channel of:", opts:["Private FM radio","All India Radio","Community radio","Internet radio"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"MW stands for:", opts:["Medium Wave","Maximum Wave","Mini Wave","Main Wave"], ans:0, diff:"easy", unit:"Unit 1" },
+
+    // UNIT 2 — Radio Production
+    { q:"A radio script is mainly:", opts:["Visual based","Audio based","Print based","Television based"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"The anchor in a radio program is responsible for:", opts:["Camera operation","Presenting and linking content","Editing video","Writing scripts only"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Radio jingles are mainly used in:", opts:["Educational programs","News programs","Advertisements","Drama"], ans:2, diff:"moderate", unit:"Unit 2" },
+    { q:"A radio drama requires:", opts:["Visuals only","Sound effects and voice acting","Camera angles","Animation"], ans:1, diff:"moderate", unit:"Unit 2" },
+    { q:"Dead air in radio means:", opts:["Broadcast silence","Loud music","Breaking news","Live broadcast"], ans:0, diff:"hard", unit:"Unit 2" },
+    { q:"A radio bulletin is:", opts:["A long documentary","A short news summary","A music show","A call-in show"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Voice quality essential for radio broadcasting is:", opts:["Visual clarity","Clear diction and modulation","Written accuracy","Physical appearance"], ans:1, diff:"moderate", unit:"Unit 2" },
+    { q:"Sound effects in radio are used to:", opts:["Replace news","Create atmosphere","Eliminate music","Censor content"], ans:1, diff:"moderate", unit:"Unit 2" },
+    { q:"The term 'soundbite' in radio means:", opts:["A long interview","A short recorded clip of speech","A music track","A script"], ans:1, diff:"moderate", unit:"Unit 2" },
+    { q:"RJ stands for:", opts:["Radio Jockey","Radio Journalist","Radio Junction","Radio Journal"], ans:0, diff:"easy", unit:"Unit 2" },
+
+    // UNIT 3 — News & Programming
+    { q:"News programs on radio are called:", opts:["Bulletins","Features","Documentaries","Dramas"], ans:0, diff:"easy", unit:"Unit 3" },
+    { q:"A radio feature is:", opts:["A short news item","An in-depth audio report","An advertisement","A jingle"], ans:1, diff:"moderate", unit:"Unit 3" },
+    { q:"Audience research in radio helps to:", opts:["Understand listener preferences","Increase transmission power","Design transmitters","Print newspapers"], ans:0, diff:"moderate", unit:"Unit 3" },
+    { q:"Call-in programs allow:", opts:["One-way communication","Audience participation","Only expert discussion","Government broadcasts"], ans:1, diff:"easy", unit:"Unit 3" },
+    { q:"Radio documentary focuses on:", opts:["Entertainment only","In-depth coverage of a topic","Daily news only","Music charts"], ans:1, diff:"moderate", unit:"Unit 3" },
+    { q:"Peak listening time for radio is called:", opts:["Dead time","Drive time / prime time","Off-peak time","Post-broadcast time"], ans:1, diff:"hard", unit:"Unit 3" },
+    { q:"The format of radio programming depends on:", opts:["Target audience","Type of frequency","Both audience and frequency","None"], ans:2, diff:"moderate", unit:"Unit 3" },
+    { q:"Talk radio mainly features:", opts:["Music playlists","Discussion, interviews, call-ins","Drama productions","Educational films"], ans:1, diff:"easy", unit:"Unit 3" },
+    { q:"Which program type is most associated with community radio?", opts:["International news","Local development programs","Celebrity interviews","Stock market updates"], ans:1, diff:"moderate", unit:"Unit 3" },
+    { q:"Weather forecasts on radio are an example of:", opts:["Entertainment","Public service broadcasting","Commercial content","Drama"], ans:1, diff:"easy", unit:"Unit 3" },
+
+    // UNIT 4 — Technology
+    { q:"Digital radio broadcasting is also called:", opts:["DAB","DTV","DTH","DRM"], ans:0, diff:"hard", unit:"Unit 4" },
+    { q:"A transmitter in radio is used for:", opts:["Recording audio","Sending radio waves","Receiving signals","Editing audio"], ans:1, diff:"easy", unit:"Unit 4" },
+    { q:"A receiver in radio is used for:", opts:["Sending signals","Picking up radio waves","Recording programs","Editing audio"], ans:1, diff:"easy", unit:"Unit 4" },
+    { q:"Satellite radio uses:", opts:["Ground-based transmitters","Satellites in orbit","AM frequencies","Community networks"], ans:1, diff:"hard", unit:"Unit 4" },
+    { q:"Podcasting is a form of:", opts:["Live radio only","On-demand audio content","Television streaming","Print journalism"], ans:1, diff:"moderate", unit:"Unit 4" },
+    { q:"FM radio has better sound quality than AM because:", opts:["It has higher power","Less interference in frequency modulation","It is government-owned","It uses longer wavelengths"], ans:1, diff:"hard", unit:"Unit 4" },
+    { q:"Internet radio stations broadcast via:", opts:["Traditional antennas","Internet streaming","Satellite only","Cable TV"], ans:1, diff:"easy", unit:"Unit 4" },
+    { q:"The bandwidth of FM radio is:", opts:["Narrower than AM","Wider than AM","Same as AM","Equal to SW"], ans:1, diff:"hard", unit:"Unit 4" },
+    { q:"Streaming platforms have impacted radio by:", opts:["Reducing listenership options","Increasing competition for audiences","Eliminating AM radio","Stopping broadcasting"], ans:1, diff:"moderate", unit:"Unit 4" },
+    { q:"Which technology enables radio to be heard worldwide?", opts:["AM only","Shortwave radio","FM only","Community radio"], ans:1, diff:"moderate", unit:"Unit 4" },
+
+    // UNIT 5 — Regulation & Ethics
+    { q:"Press Council of India regulates:", opts:["Print media","Radio","Television","Social media"], ans:0, diff:"moderate", unit:"Unit 5" },
+    { q:"Radio content should be:", opts:["Biased","Balanced and ethical","Sensational only","Government-controlled only"], ans:1, diff:"easy", unit:"Unit 5" },
+    { q:"Which body issues licenses for FM radio in India?", opts:["TRAI","Ministry of I&B","Supreme Court","AIR"], ans:1, diff:"hard", unit:"Unit 5" },
+    { q:"Community radio licenses in India are granted for:", opts:["Commercial purposes","Non-commercial community purposes","Government propaganda","Political parties"], ans:1, diff:"hard", unit:"Unit 5" },
+    { q:"Radio advertising revenue comes from:", opts:["Government grants only","Sponsors and commercial spots","Public donations only","Foreign investment only"], ans:1, diff:"moderate", unit:"Unit 5" },
+    { q:"News accuracy on radio requires:", opts:["Fast broadcasting only","Verification and fact-checking","Sensationalism","Entertainment focus"], ans:1, diff:"easy", unit:"Unit 5" },
+    { q:"The role of radio in rural India is mainly:", opts:["Fashion updates","Agricultural information and development","Celebrity news","Stock market"], ans:1, diff:"easy", unit:"Unit 5" },
+    { q:"Radio is considered important for emergency communication because:", opts:["It requires electricity always","It can reach areas without internet","It is only for entertainment","It is expensive"], ans:1, diff:"moderate", unit:"Unit 5" },
+    { q:"Which principle guides ethical radio journalism?", opts:["Profit maximization","Truth, accuracy and public interest","Sensationalism","Political alignment"], ans:1, diff:"moderate", unit:"Unit 5" },
+    { q:"Phase III FM policy in India expanded:", opts:["Television channels","Private FM radio licenses","Satellite radio","Community radio only"], ans:1, diff:"hard", unit:"Unit 5" },
+  ],
+
+  ict: [
+    // UNIT 1 — Introduction to Computers
+    { q:'The word "Computer" comes from the Latin word:', opts:["Computare","Compute","Computation","None"], ans:0, diff:"easy", unit:"Unit 1", qHi:'कंप्यूटर शब्द किस लैटिन शब्द से आया है?', optsHi:["Computare","Compute","Computation","इनमें से कोई नहीं"] },
+    { q:"The first mechanical computer was developed by:", opts:["Charles Babbage","Alan Turing","Bill Gates","Steve Jobs"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"The Analytical Engine was designed by:", opts:["John Napier","Charles Babbage","Blaise Pascal","Joseph Jacquard"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"The first generation computers used:", opts:["Transistors","Vacuum tubes","ICs","Microprocessors"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"The period of second generation computers was:", opts:["1940-1956","1956-1963","1964-1971","1972-1980"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Third generation computers used:", opts:["Vacuum tubes","Transistors","Integrated Circuits","Microprocessors"], ans:2, diff:"easy", unit:"Unit 1" },
+    { q:"Fourth generation computers are based on:", opts:["VLSI","IC","Transistor","Vacuum tube"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"Example of first generation computer:", opts:["ENIAC","IBM 360","Intel 8085","Pentium"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"Microprocessor is the basis of:", opts:["First generation","Second generation","Third generation","Fourth generation"], ans:3, diff:"easy", unit:"Unit 1" },
+    { q:"The first electronic computer was:", opts:["ENIAC","UNIVAC","EDVAC","EDSAC"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"The physical parts of a computer are called:", opts:["Software","Hardware","Firmware","None"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"The programs and data that run on a computer are called:", opts:["Hardware","Software","Firmware","None"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"CPU stands for:", opts:["Central Processing Unit","Computer Processing Unit","Central Program Unit","None"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"ALU stands for:", opts:["Arithmetic Logic Unit","Arithmetic Local Unit","Array Logic Unit","None"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"CU in CPU stands for:", opts:["Control Unit","Command Unit","Central Unit","None"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"Raw facts and figures are called:", opts:["Information","Data","Knowledge","None"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Processed data is called:", opts:["Data","Information","Knowledge","None"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"The correct data hierarchy is:", opts:["Data > Information > Knowledge","Knowledge > Information > Data","Information > Data > Knowledge","None"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"Keyboard is an example of:", opts:["Output device","Input device","Storage device","None"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Monitor is an example of:", opts:["Input device","Output device","Storage device","None"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"RAM stands for:", opts:["Read Access Memory","Random Access Memory","Readable Array Memory","None"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"ROM stands for:", opts:["Read Only Memory","Random Only Memory","Readable Output Memory","None"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"RAM is a:", opts:["Primary memory","Secondary memory","Tertiary memory","None"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"ROM is a:", opts:["Volatile memory","Non-volatile memory","Cache memory","None"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"1 KB is equal to:", opts:["1000 bytes","1024 bytes","100 bytes","512 bytes"], ans:1, diff:"moderate", unit:"Unit 1" },
+    { q:"MS Word is an example of:", opts:["System software","Application software","Utility software","None"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Windows is an example of:", opts:["Application software","System software","Utility software","None"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Antivirus is an example of:", opts:["Application software","System software","Utility software","None"], ans:2, diff:"easy", unit:"Unit 1" },
+    { q:"The brain of the computer is:", opts:["RAM","CPU","Hard disk","Monitor"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"The smallest unit of data is:", opts:["Byte","Bit","KB","MB"], ans:1, diff:"easy", unit:"Unit 1" },
+
+    // UNIT 2 — Internet & Communication
+    { q:"The internet is a network of:", opts:["Computers only","Networks of networks","Satellites only","Cable TV networks"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"WWW stands for:", opts:["World Wide Web","World Wide Wire","Wide World Web","None"], ans:0, diff:"easy", unit:"Unit 2" },
+    { q:"HTML stands for:", opts:["Hyper Text Markup Language","High Text Markup Language","Hyper Transfer Markup Language","None"], ans:0, diff:"easy", unit:"Unit 2" },
+    { q:"URL stands for:", opts:["Universal Resource Locator","Uniform Resource Locator","Unique Resource Link","None"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Email stands for:", opts:["Electronic Mail","Easy Mail","Extended Mail","None"], ans:0, diff:"easy", unit:"Unit 2" },
+    { q:"A browser is used to:", opts:["Send emails","Browse websites","Store data","Print documents"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Google Chrome is an example of:", opts:["Operating system","Web browser","Antivirus","Programming language"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Social media is mainly used for:", opts:["Storage only","Communication and sharing","Hardware management","Antivirus protection"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Facebook is an example of:", opts:["Search engine","Social media","Email client","Operating system"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"A search engine is used to:", opts:["Send emails","Find information online","Store files","Create websites"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Google is an example of:", opts:["Social media","Search engine","Browser","Operating system"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Uploading means:", opts:["Sending data to internet/server","Downloading from internet","Deleting files","Printing files"], ans:0, diff:"easy", unit:"Unit 2" },
+    { q:"Downloading means:", opts:["Sending data to server","Getting data from internet/server","Creating files","Emailing documents"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Wi-Fi stands for:", opts:["Wireless Fidelity","Wide Fidelity","Wired Internet","None"], ans:0, diff:"easy", unit:"Unit 2" },
+    { q:"Bandwidth refers to:", opts:["Physical size of network","Data transfer capacity","Number of users","Server storage"], ans:1, diff:"moderate", unit:"Unit 2" },
+    { q:"A website is a collection of:", opts:["Hardware devices","Web pages","Emails only","Programs"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"The first page of a website is called:", opts:["Index page","Home page","Start page","Main page"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"HTTPS stands for:", opts:["Hyper Text Transfer Protocol Secure","High Transfer Text Protocol Secure","None","Hyper Text Protocol Simple"], ans:0, diff:"moderate", unit:"Unit 2" },
+    { q:"Cyber crime refers to:", opts:["Physical theft","Criminal activities using computers/internet","Offline crimes","Banking fraud only"], ans:1, diff:"moderate", unit:"Unit 2" },
+    { q:"A firewall is used for:", opts:["Physical protection","Network security against unauthorized access","Increasing internet speed","None"], ans:1, diff:"moderate", unit:"Unit 2" },
+
+    // UNIT 3 — Multimedia & DTP
+    { q:"Multimedia combines:", opts:["Text only","Text, audio, video, images","Audio only","Video only"], ans:1, diff:"easy", unit:"Unit 3" },
+    { q:"DTP stands for:", opts:["Desktop Publishing","Digital Text Processing","Data Transfer Protocol","None"], ans:0, diff:"easy", unit:"Unit 3" },
+    { q:"Adobe Photoshop is mainly used for:", opts:["Word processing","Image editing","Spreadsheets","Presentations"], ans:1, diff:"easy", unit:"Unit 3" },
+    { q:"Resolution of an image is measured in:", opts:["MB","DPI (Dots Per Inch)","Bytes","Hz"], ans:1, diff:"moderate", unit:"Unit 3" },
+    { q:"A pixel is:", opts:["A large image file","The smallest unit of a digital image","A type of font","A video format"], ans:1, diff:"moderate", unit:"Unit 3" },
+    { q:"Video editing software includes:", opts:["MS Excel","Adobe Premiere","MS Word","Notepad"], ans:1, diff:"easy", unit:"Unit 3" },
+    { q:"MP3 is a format for:", opts:["Video files","Audio files","Image files","Document files"], ans:1, diff:"easy", unit:"Unit 3" },
+    { q:"JPEG is a format for:", opts:["Audio files","Video files","Image files","Text files"], ans:2, diff:"easy", unit:"Unit 3" },
+    { q:"Animation refers to:", opts:["Static images","Moving images/graphics","Audio only","Text documents"], ans:1, diff:"easy", unit:"Unit 3" },
+    { q:"A scanner is used to:", opts:["Print documents","Convert physical documents to digital","Store data","None"], ans:1, diff:"easy", unit:"Unit 3" },
+
+    // UNIT 4 — Digital Media & Journalism
+    { q:"Digital journalism mainly uses:", opts:["Handwritten notes","Internet platforms","Stone tablets","Radio waves only"], ans:1, diff:"easy", unit:"Unit 4" },
+    { q:"Blogging is a form of:", opts:["Traditional journalism only","Online writing/publishing","Radio broadcasting","TV production"], ans:1, diff:"easy", unit:"Unit 4" },
+    { q:"Citizen journalism refers to:", opts:["Government journalism","News reporting by ordinary citizens","Police journalism","Academic journalism"], ans:1, diff:"moderate", unit:"Unit 4" },
+    { q:"Fake news is defined as:", opts:["Accurate information","False or misleading information presented as news","Breaking news","Investigative reporting"], ans:1, diff:"easy", unit:"Unit 4" },
+    { q:"Social media journalism challenges traditional media because:", opts:["It is slower","It provides instant, widespread publishing","It requires a license","It is regulated"], ans:1, diff:"moderate", unit:"Unit 4" },
+    { q:"SEO stands for:", opts:["Search Engine Optimization","Social Engagement Online","Standard Email Order","None"], ans:0, diff:"moderate", unit:"Unit 4" },
+    { q:"A podcast is:", opts:["A live radio program","A downloadable audio series","A television show","A printed magazine"], ans:1, diff:"easy", unit:"Unit 4" },
+    { q:"YouTube is mainly a platform for:", opts:["Text articles","Video content","Audio only","Email"], ans:1, diff:"easy", unit:"Unit 4" },
+    { q:"Clickbait in digital journalism means:", opts:["Accurate headlines","Misleading sensational headlines to attract clicks","Breaking news","Investigative stories"], ans:1, diff:"moderate", unit:"Unit 4" },
+    { q:"Big data in media refers to:", opts:["Small datasets","Very large and complex datasets that cannot be processed by traditional tools","Simple spreadsheets","Paper records"], ans:1, diff:"hard", unit:"Unit 4" },
+
+    // UNIT 5 — Emerging Technologies
+    { q:"AI stands for:", opts:["Automated Internet","Artificial Intelligence","Applied Information","None"], ans:1, diff:"easy", unit:"Unit 5" },
+    { q:"Machine Learning is a subset of:", opts:["Internet","Artificial Intelligence","Hardware","Database"], ans:1, diff:"moderate", unit:"Unit 5" },
+    { q:"Cloud computing stores data:", opts:["On physical hardware only","On remote internet servers","On floppy disks","On USB drives only"], ans:1, diff:"easy", unit:"Unit 5" },
+    { q:"Virtual Reality (VR) creates:", opts:["Printed experiences","Immersive simulated environments","Radio broadcasts","Text articles"], ans:1, diff:"moderate", unit:"Unit 5" },
+    { q:"Blockchain technology is mainly used for:", opts:["Social media","Secure, decentralized digital records/transactions","Video editing","Printing"], ans:1, diff:"hard", unit:"Unit 5" },
+    { q:"The process of analyzing big data is called:", opts:["Data Mining","Data Loss","Data Deletion","None"], ans:0, diff:"moderate", unit:"Unit 5" },
+    { q:"The app used for digital payments in India includes:", opts:["Paytm","MS Word","Excel","PowerPoint"], ans:0, diff:"easy", unit:"Unit 5" },
+    { q:"The term for internet-based TV is:", opts:["Cable TV","IPTV","Satellite TV","None"], ans:1, diff:"moderate", unit:"Unit 5" },
+    { q:"The platform for video conferencing is:", opts:["Zoom","MS Word","Excel","Tally"], ans:0, diff:"easy", unit:"Unit 5" },
+    { q:"The main pillar of Digital India is:", opts:["Digital Infrastructure","Digital Literacy","Digital Services","All of these"], ans:3, diff:"easy", unit:"Unit 5" },
+  ],
+
+  dev: [
+    { q:"Development means?", opts:["Decline","Progress","Conflict","Poverty"], ans:1, diff:"easy", unit:"Unit 1", qHi:"विकास का अर्थ है?", optsHi:["पतन","प्रगति","संघर्ष","गरीबी"] },
+    { q:"Development includes?", opts:["Economic growth","Social change","Human welfare","All"], ans:3, diff:"easy", unit:"Unit 1" },
+    { q:"Sustainable development focuses on?", opts:["Present only","Future generations also","Industry only","Cities only"], ans:1, diff:"moderate", unit:"Unit 1" },
+    { q:"Human development means?", opts:["Industrial growth","Expansion of human capabilities","Trade increase","Urbanization"], ans:1, diff:"moderate", unit:"Unit 1" },
+    { q:"HDI stands for?", opts:["Human Development Index","Human Data Indicator","High Development Index","Human Direction Index"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"HDI was introduced by?", opts:["IMF","UNDP","WTO","UNESCO"], ans:1, diff:"moderate", unit:"Unit 1" },
+    { q:"Which is not part of HDI?", opts:["Education","Income","Health","Religion"], ans:3, diff:"moderate", unit:"Unit 1" },
+    { q:"GDP stands for?", opts:["Gross Domestic Product","General Development Plan","Global Domestic Policy","Gross Development Process"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"Dependency theory argues that?", opts:["Poor nations depend on rich nations","Development is equal everywhere","Colonization helps all","None"], ans:0, diff:"hard", unit:"Unit 1" },
+    { q:"Rostow is known for?", opts:["Dependency theory","Stages of growth theory","Marxism","Structuralism"], ans:1, diff:"hard", unit:"Unit 1" },
+    { q:"Rostow proposed how many stages?", opts:["3","4","5","6"], ans:2, diff:"hard", unit:"Unit 1" },
+    { q:"Sustainable development was emphasized in?", opts:["Brundtland Report","WTO meeting","IMF Report","None"], ans:0, diff:"hard", unit:"Unit 1" },
+    { q:"Poverty means?", opts:["Wealth","Lack of basic needs","Industrial growth","High literacy"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Gender inequality means?", opts:["Equal rights","Unequal treatment","Economic equality","Urban growth"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Brain drain means?", opts:["Migration of skilled people","Population growth","Urbanization","Poverty"], ans:0, diff:"hard", unit:"Unit 1" },
+    { q:"Globalization affects development through?", opts:["Trade","Technology","Communication","All"], ans:3, diff:"moderate", unit:"Unit 1" },
+    { q:"Which is a developed country?", opts:["India","Nepal","Japan","Bangladesh"], ans:2, diff:"easy", unit:"Unit 1" },
+    { q:"Which organization publishes HDI?", opts:["WHO","UNDP","IMF","WTO"], ans:1, diff:"moderate", unit:"Unit 1" },
+    { q:"Communication helps development through?", opts:["Awareness","Education","Participation","All"], ans:3, diff:"moderate", unit:"Unit 1" },
+    { q:"Sustainable development balances?", opts:["Growth and environment","Profit and loss","Rural and urban only","None"], ans:0, diff:"moderate", unit:"Unit 1" },
+
+    { q:"Development communication mainly aims at?", opts:["Entertainment","Social change","Profit making","Advertising"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Two-step flow model was proposed by?", opts:["Lazarsfeld","Aristotle","Marx","Freud"], ans:0, diff:"hard", unit:"Unit 2" },
+    { q:"Diffusion of innovation theory was proposed by?", opts:["Rogers","Lasswell","Schramm","McLuhan"], ans:0, diff:"hard", unit:"Unit 2" },
+    { q:"DSC stands for?", opts:["Development Support Communication","Data Support Control","Digital Social Communication","Development Study Circle"], ans:0, diff:"easy", unit:"Unit 2" },
+    { q:"Community radio is useful for?", opts:["Local communication","International trade","Military use","Space research"], ans:0, diff:"moderate", unit:"Unit 2" },
+    { q:"Folk media includes?", opts:["Drama","Puppet shows","Songs","All"], ans:3, diff:"moderate", unit:"Unit 2" },
+    { q:"Which model emphasizes dialogue?", opts:["Participatory model","Top-down model","Hypodermic model","None"], ans:0, diff:"moderate", unit:"Unit 2" },
+    { q:"Communication for development is also called?", opts:["C4D","GDP","HDI","DSC only"], ans:0, diff:"hard", unit:"Unit 2" },
+    { q:"Top-down communication means?", opts:["Public to public","Government to people","People to government","Community discussion"], ans:1, diff:"moderate", unit:"Unit 2" },
+    { q:"Development communication emerged mainly after?", opts:["World War II","French Revolution","Industrial Revolution","Cold War only"], ans:0, diff:"hard", unit:"Unit 2" },
+
+    { q:"Community media mainly serves?", opts:["Global audience","Local communities","Corporate groups","Political parties"], ans:1, diff:"easy", unit:"Unit 3" },
+    { q:"Alternative media is important because it?", opts:["Gives voice to marginalized groups","Promotes censorship","Reduces participation","Stops communication"], ans:0, diff:"moderate", unit:"Unit 3" },
+    { q:"A development news story should be?", opts:["Misleading","Accurate","Biased","Sensational only"], ans:1, diff:"easy", unit:"Unit 3" },
+    { q:"Development reporting focuses on?", opts:["Human issues","Rural development","Public welfare","All"], ans:3, diff:"moderate", unit:"Unit 3" },
+    { q:"Which is a source for development stories?", opts:["Government reports","NGOs","Surveys","All"], ans:3, diff:"moderate", unit:"Unit 3" },
+    { q:"Rural journalism mainly covers?", opts:["Village issues","Celebrity gossip","Film industry","Stock market only"], ans:0, diff:"easy", unit:"Unit 3" },
+    { q:"Social media today helps development communication through?", opts:["Information sharing","Awareness campaigns","Public interaction","All"], ans:3, diff:"moderate", unit:"Unit 3" },
+    { q:"Main aim of development reporting is?", opts:["Social welfare","Public awareness","Positive change","All"], ans:3, diff:"moderate", unit:"Unit 3" },
+    { q:"Community participation improves?", opts:["Development planning","Awareness","Social change","All"], ans:3, diff:"moderate", unit:"Unit 3" },
+    { q:"Development journalism should be?", opts:["Ethical","Accurate","Balanced","All"], ans:3, diff:"moderate", unit:"Unit 3" },
+
+    { q:"International communication refers to?", opts:["Local communication","Communication across nations","Personal talk","Village communication"], ans:1, diff:"easy", unit:"Unit 4" },
+    { q:"Which is an international news agency?", opts:["Reuters","PTI","ANI","Dainik Jagran"], ans:0, diff:"easy", unit:"Unit 4" },
+    { q:"AFP stands for?", opts:["Agence France-Presse","American Free Press","Asian Foreign Press","Allied French Publication"], ans:0, diff:"moderate", unit:"Unit 4" },
+    { q:"PTI stands for?", opts:["Press Trust of India","Public Trust of India","Press Television India","Political Times India"], ans:0, diff:"easy", unit:"Unit 4" },
+    { q:"NWICO stands for?", opts:["New World Information and Communication Order","National World Information Council Organization","New Wave International Communication Office","None"], ans:0, diff:"hard", unit:"Unit 4" },
+    { q:"NWICO aimed to establish?", opts:["Balanced global information flow","Media monopoly","Censorship only","Political propaganda"], ans:0, diff:"hard", unit:"Unit 4" },
+    { q:"Developing countries demanded NWICO because?", opts:["Information flow was unequal","There was too much equality","Media was local only","None"], ans:0, diff:"hard", unit:"Unit 4" },
+    { q:"UNO was established in?", opts:["1945","1919","1950","1965"], ans:0, diff:"moderate", unit:"Unit 4" },
+    { q:"SAARC stands for?", opts:["South Asian Association for Regional Cooperation","South Asian Agency for Research and Culture","South Association for Asian Regional Council","None"], ans:0, diff:"moderate", unit:"Unit 4" },
+    { q:"NAM stands for?", opts:["Non-Aligned Movement","National Alliance Movement","New Asian Mission","None"], ans:0, diff:"easy", unit:"Unit 4" },
+  ],
+
+  iconic: [
+    { q:"The Revolt of 1857 is also called:", opts:["Civil Disobedience Movement","First War of Independence","Quit India Movement","Swadeshi Movement"], ans:1, diff:"easy", unit:"Unit 1", qHi:"1857 का विद्रोह किस नाम से भी जाना जाता है?", optsHi:["सविनय अवज्ञा आंदोलन","प्रथम स्वतंत्रता संग्राम","भारत छोड़ो आंदोलन","स्वदेशी आंदोलन"] },
+    { q:'The slogan "Give me blood, and I shall give you freedom" was given by:', opts:["Mahatma Gandhi","Bhagat Singh","Subhas Chandra Bose","Jawaharlal Nehru"], ans:2, diff:"moderate", unit:"Unit 1" },
+    { q:"The Indo-China War occurred in:", opts:["1948","1962","1965","1971"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"The Indo-Pak War of 1971 resulted in the creation of:", opts:["Nepal","Bangladesh","Bhutan","Myanmar"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"The Emergency in India was declared in:", opts:["1969","1975","1984","1991"], ans:1, diff:"hard", unit:"Unit 1" },
+    { q:"During Emergency, press freedom was:", opts:["Expanded","Strengthened","Restricted","Unaffected"], ans:2, diff:"easy", unit:"Unit 1" },
+    { q:"The Kargil War took place in:", opts:["1987","1999","2001","1971"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Deendayal Upadhyaya is associated with:", opts:["Marxism","Integral Humanism","Liberalism","Socialism"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Cho Ramaswamy was famous for:", opts:["Regional reporting","Political satire","Science writing","War journalism"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"S. Guru Murthy is known for:", opts:["Sports commentary","Economics and journalism","Acting","Teaching"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Journalism after independence mainly aimed at:", opts:["Entertainment","Nation-building","Trade only","Advertising"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"The First Prime Minister of India was:", opts:["Mahatma Gandhi","Jawaharlal Nehru","Sardar Vallabhbhai Patel","Rajendra Prasad"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"The Quit India Movement started in:", opts:["1942","1930","1919","1857"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"The Constitution of India came into effect in:", opts:["1947","1950","1952","1962"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Operation Flood is related to:", opts:["Agriculture","Dairy development","Space research","Banking"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Verghese Kurien is known as:", opts:["Missile Man","Father of White Revolution","Father of Green Revolution","Space Scientist"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"Press censorship was severe during:", opts:["1947","1975 Emergency","1962 War","1999 War"], ans:1, diff:"moderate", unit:"Unit 1" },
+    { q:"Which war is known for Operation Vijay?", opts:["Indo-China War","Kargil War","1971 War","1965 War"], ans:1, diff:"moderate", unit:"Unit 1" },
+    { q:"The Indo-Pak War of 1965 ended with:", opts:["Lahore Treaty","Tashkent Agreement","Shimla Agreement","Delhi Pact"], ans:1, diff:"hard", unit:"Unit 1" },
+    { q:'The slogan "Jai Jawan Jai Kisan" was given by:', opts:["Indira Gandhi","Lal Bahadur Shastri","Jawaharlal Nehru","Rajiv Gandhi"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:"The main cause of the 1857 revolt was:", opts:["Social reform","Cartridge issue","Tax reduction","Press freedom"], ans:1, diff:"hard", unit:"Unit 1" },
+    { q:"Mangal Pandey is remembered for:", opts:["Green Revolution","Revolt of 1857","Emergency","Kargil War"], ans:1, diff:"hard", unit:"Unit 1" },
+    { q:"Social media is a part of:", opts:["Traditional media","Digital media","Print media","Broadcast only"], ans:1, diff:"hard", unit:"Unit 1" },
+    { q:"Yellow journalism means:", opts:["Ethical reporting","Sensationalized news","Scientific reporting","Educational journalism"], ans:1, diff:"easy", unit:"Unit 1" },
+    { q:'The role of media in democracy is often called:', opts:["Fourth Estate","Third Force","Fifth Column","Executive Wing"], ans:0, diff:"hard", unit:"Unit 1" },
+    { q:"Fake news spreads mainly through:", opts:["Stone inscriptions","Social media","Radio only","Postal service"], ans:1, diff:"hard", unit:"Unit 1" },
+    { q:"Which personality is known for Integral Humanism?", opts:["Subhas Chandra Bose","Deendayal Upadhyaya","Cho Ramaswamy","Bhanu Pratap Shukla"], ans:1, diff:"hard", unit:"Unit 1" },
+    { q:"Which war highlighted media's role in nationalism?", opts:["Kargil War","Cold War","Gulf War","Crimean War"], ans:0, diff:"easy", unit:"Unit 1" },
+    { q:"Atul Maheshwari contributed to:", opts:["Media development","Agriculture","Medicine","Sports"], ans:0, diff:"moderate", unit:"Unit 1" },
+    { q:"Investigative journalism focuses on:", opts:["Fashion","Deep reporting","Cinema","Sports only"], ans:1, diff:"hard", unit:"Unit 1" },
+
+    // UNIT 2 — Constitution
+    { q:"The Constitution of India came into force on:", opts:["15 August 1947","26 January 1950","26 November 1949","2 October 1950"], ans:1, diff:"hard", unit:"Unit 2" },
+    { q:"The Chairman of the Drafting Committee was:", opts:["Jawaharlal Nehru","B. R. Ambedkar","Rajendra Prasad","Sardar Vallabhbhai Patel"], ans:1, diff:"hard", unit:"Unit 2" },
+    { q:"Fundamental Rights are included in:", opts:["Part I","Part III","Part IV","Part V"], ans:1, diff:"hard", unit:"Unit 2" },
+    { q:"Freedom of speech is guaranteed under:", opts:["Article 14","Article 19","Article 21","Article 32"], ans:1, diff:"hard", unit:"Unit 2" },
+    { q:"The Lower House of Parliament is:", opts:["Rajya Sabha","Lok Sabha","Vidhan Sabha","Legislative Council"], ans:1, diff:"hard", unit:"Unit 2" },
+    { q:"National Emergency is declared under Article:", opts:["352","356","360","370"], ans:0, diff:"hard", unit:"Unit 2" },
+    { q:"The Preamble of India begins with:", opts:["We the Parliament","We the People of India","Government of India","Citizens of India"], ans:1, diff:"moderate", unit:"Unit 2" },
+    { q:'Which Article is known as the "Heart and Soul" of the Constitution?', opts:["Article 14","Article 19","Article 32","Article 21"], ans:2, diff:"moderate", unit:"Unit 2" },
+    { q:"Untouchability is abolished under Article:", opts:["14","15","17","21"], ans:2, diff:"moderate", unit:"Unit 2" },
+    { q:"The tenure of Lok Sabha is:", opts:["4 years","5 years","6 years","7 years"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Panchayati Raj was constitutionalized by which amendment?", opts:["42nd Amendment","73rd Amendment","44th Amendment","52nd Amendment"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:'The term "Secular" was added to the Preamble by:', opts:["42nd Amendment","44th Amendment","73rd Amendment","86th Amendment"], ans:0, diff:"easy", unit:"Unit 2" },
+    { q:"The Vice President is ex-officio Chairman of:", opts:["Lok Sabha","Rajya Sabha","Supreme Court","NITI Aayog"], ans:1, diff:"hard", unit:"Unit 2" },
+    { q:"Money Bills can be introduced only in:", opts:["Rajya Sabha","Lok Sabha","Supreme Court","State Assembly"], ans:1, diff:"hard", unit:"Unit 2" },
+    { q:"Judicial Review means:", opts:["Election reforms","Court's power to review laws","Parliament review","Media trial"], ans:1, diff:"easy", unit:"Unit 2" },
+    { q:"Dr. B. R. Ambedkar is known as the:", opts:["Father of Nation","Architect of Constitution","First President","First Prime Minister"], ans:1, diff:"hard", unit:"Unit 2" },
+    { q:"Rajya Sabha is a:", opts:["Permanent House","Temporary House","Dissolved House","State Assembly"], ans:0, diff:"hard", unit:"Unit 2" },
+    { q:"Universal Adult Franchise means:", opts:["Voting by educated citizens only","Voting rights for all adults","Voting by government officials only","Voting by taxpayers only"], ans:1, diff:"hard", unit:"Unit 2" },
+    { q:"The minimum age for voting in India is:", opts:["21 years","18 years","25 years","30 years"], ans:1, diff:"moderate", unit:"Unit 2" },
+    { q:"Media is often called the Fourth Pillar of:", opts:["Religion","Democracy","Trade","Military"], ans:1, diff:"hard", unit:"Unit 2" },
+  ]
+};
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let currentLang = 'en';
+let currentSubject = null;
+let currentQuestions = [];
+let currentQIndex = 0;
+let score = 0;
+let maxScore = 0;
+let correctCount = 0;
+let incorrectCount = 0;
+let skippedCount = 0;
+let answered = false;
+let timerInterval = null;
+let timerDuration = 45;
+let timeLeft = 45;
+let wrongAnswers = [];
+let lastConfig = {};
+
+// Subject meta
+const subjectMeta = {
+  radio: { name: { en: "Radio Broadcasting", hi: "रेडियो प्रसारण" }, icon: "📻", color: "var(--accent)" },
+  ict:   { name: { en: "ICT", hi: "ICT" }, icon: "💻", color: "var(--emerald)" },
+  dev:   { name: { en: "Development & Intl. Comm.", hi: "विकास एवं अंतर्राष्ट्रीय संचार" }, icon: "🌐", color: "var(--gold)" },
+  iconic:{ name: { en: "Iconic Personalities of Media", hi: "मीडिया की प्रतिष्ठित हस्तियाँ" }, icon: "🏛️", color: "#c084fc" }
+};
+
+const diffMarks = { easy: 1, moderate: 5, hard: 10 };
+const diffLabels = { easy: { en: "Easy · 1 mark", hi: "आसान · 1 अंक" }, moderate: { en: "Moderate · 5 marks", hi: "मध्यम · 5 अंक" }, hard: { en: "Hard · 10 marks", hi: "कठिन · 10 अंक" } };
+const diffColors = { easy: "var(--emerald)", moderate: "var(--gold)", hard: "var(--ruby)" };
+
+// ═══════════════════════════════════════════════
+//  LANGUAGE
+// ═══════════════════════════════════════════════
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'hi' : 'en';
+  document.getElementById('lang-en').className = currentLang === 'en' ? 'active-lang' : '';
+  document.getElementById('lang-hi').className = currentLang === 'hi' ? 'active-lang' : '';
+  applyLang();
+  if (document.getElementById('screen-exam').classList.contains('active')) {
+    renderQuestion();
+  }
+}
+
+function applyLang() {
+  document.querySelectorAll('[data-en]').forEach(el => {
+    el.textContent = el.getAttribute('data-' + currentLang) || el.getAttribute('data-en');
+  });
+  document.querySelectorAll('option[data-en]').forEach(el => {
+    el.textContent = el.getAttribute('data-' + currentLang) || el.getAttribute('data-en');
+  });
+}
+
+function t(key, data) {
+  const translations = {
+    q_of: { en: `Q ${data.a} / ${data.b}`, hi: `प्र ${data.a} / ${data.b}` },
+    score: { en: "Score", hi: "स्कोर" },
+    correct_ans: { en: `✅ Correct! +${data.marks} marks`, hi: `✅ सही! +${data.marks} अंक` },
+    wrong_ans: { en: `❌ Wrong! Correct: ${data.correct}`, hi: `❌ गलत! सही उत्तर: ${data.correct}` },
+    time_up: { en: "⏰ Time's up! Moving on...", hi: "⏰ समय समाप्त! आगे बढ़ रहे हैं..." },
+    next: { en: "Next →", hi: "अगला →" },
+    finish: { en: "Finish Test ✓", hi: "टेस्ट समाप्त करें ✓" },
+    your_ans: { en: "Your answer: ", hi: "आपका उत्तर: " },
+    correct_is: { en: "Correct answer: ", hi: "सही उत्तर: " },
+  };
+  const tr = translations[key];
+  return tr ? (tr[currentLang] || tr.en) : key;
+}
+
+// ═══════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.style.animation = 'none';
+  el.offsetHeight; // reflow
+  el.style.animation = '';
+  document.getElementById('home-btn').style.display = id === 'screen-home' ? 'none' : 'flex';
+}
+
+function goHome() {
+  stopTimer();
+  showScreen('screen-home');
+  document.getElementById('nav-title').textContent = 'MAJMC Mock Tests';
+}
+
+// ═══════════════════════════════════════════════
+//  SUBJECT SELECTION
+// ═══════════════════════════════════════════════
+function selectSubject(subject) {
+  currentSubject = subject;
+  const meta = subjectMeta[subject];
+  document.getElementById('config-icon').textContent = meta.icon;
+  document.getElementById('config-title').textContent = meta.name[currentLang];
+  document.getElementById('config-desc').textContent = {
+    radio: { en: "Test your knowledge on Radio Broadcasting — frequencies, AIR, production, technology & regulation.", hi: "रेडियो प्रसारण पर अपना ज्ञान जांचें — आवृत्तियाँ, AIR, उत्पादन, प्रौद्योगिकी और नियमन।" },
+    ict:   { en: "Test your knowledge on Information & Communication Technology — computers, internet, multimedia & emerging tech.", hi: "ICT पर अपना ज्ञान जांचें — कंप्यूटर, इंटरनेट, मल्टीमीडिया और उभरती प्रौद्योगिकी।" },
+    dev:   { en: "Test your knowledge on Development & International Communication — HDI, theories, media and global organizations.", hi: "विकास और अंतर्राष्ट्रीय संचार पर अपना ज्ञान जांचें।" },
+    iconic:{ en: "Test your knowledge on Iconic Media Personalities and the Indian Constitution.", hi: "मीडिया की प्रतिष्ठित हस्तियों और भारतीय संविधान पर अपना ज्ञान जांचें।" }
+  }[subject][currentLang];
+
+  // Populate unit filter
+  const unitSet = new Set(questionBank[subject].map(q => q.unit));
+  const unitFilter = document.getElementById('unit-filter');
+  unitFilter.innerHTML = `<option value="all" data-en="All Units" data-hi="सभी यूनिट">${currentLang === 'hi' ? 'सभी यूनिट' : 'All Units'}</option>`;
+  [...unitSet].sort().forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u;
+    opt.textContent = u;
+    unitFilter.appendChild(opt);
+  });
+
+  showScreen('screen-config');
+}
+
+// ═══════════════════════════════════════════════
+//  START EXAM
+// ═══════════════════════════════════════════════
+function startExam() {
+  const unitFilter = document.getElementById('unit-filter').value;
+  const diffFilter = document.getElementById('diff-filter').value;
+  const qCountVal  = document.getElementById('q-count').value;
+  timerDuration    = parseInt(document.getElementById('timer-setting').value);
+
+  lastConfig = { unitFilter, diffFilter, qCountVal };
+
+  let pool = questionBank[currentSubject].filter(q => {
+    const unitOk = unitFilter === 'all' || q.unit === unitFilter;
+    const diffOk = diffFilter === 'all' || q.diff === diffFilter;
+    return unitOk && diffOk;
+  });
+
+  // Shuffle
+  pool = pool.sort(() => Math.random() - 0.5);
+
+  if (qCountVal !== 'all') {
+    pool = pool.slice(0, parseInt(qCountVal));
+  }
+
+  if (pool.length === 0) {
+    alert(currentLang === 'hi' ? 'इस फ़िल्टर के लिए कोई प्रश्न नहीं मिला।' : 'No questions found for this filter combination.');
+    return;
+  }
+
+  currentQuestions = pool;
+  currentQIndex = 0;
+  score = 0;
+  maxScore = pool.reduce((acc, q) => acc + diffMarks[q.diff], 0);
+  correctCount = 0;
+  incorrectCount = 0;
+  skippedCount = 0;
+  wrongAnswers = [];
+
+  document.getElementById('exam-subject-name').textContent = subjectMeta[currentSubject].name[currentLang];
+  document.getElementById('nav-title').textContent = subjectMeta[currentSubject].name[currentLang];
+  document.getElementById('live-score').textContent = '0';
+
+  showScreen('screen-exam');
+  renderQuestion();
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER QUESTION
+// ═══════════════════════════════════════════════
+function renderQuestion() {
+  const q = currentQuestions[currentQIndex];
+  answered = false;
+
+  // Progress
+  const pct = (currentQIndex / currentQuestions.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('q-counter').textContent = `Q ${currentQIndex + 1} / ${currentQuestions.length}`;
+
+  // Difficulty badge
+  const diffEl = document.getElementById('diff-badge');
+  const diffClass = { easy: 'badge-easy', moderate: 'badge-moderate', hard: 'badge-hard' }[q.diff];
+  diffEl.innerHTML = `<span class="badge ${diffClass}">${diffLabels[q.diff][currentLang]}</span>`;
+
+  // Question text
+  const qText = (currentLang === 'hi' && q.qHi) ? q.qHi : q.q;
+  document.getElementById('question-text').textContent = qText;
+
+  // Options
+  const opts = (currentLang === 'hi' && q.optsHi) ? q.optsHi : q.opts;
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  const labels = ['A', 'B', 'C', 'D'];
+  opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-label">${labels[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+
+  // Feedback
+  document.getElementById('feedback-msg').textContent = '';
+  document.getElementById('next-btn').style.display = 'none';
+
+  // Timer
+  const timerRing = document.getElementById('timer-ring');
+  if (timerDuration > 0) {
+    timerRing.style.display = 'flex';
+    startTimer();
+  } else {
+    timerRing.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════════════
+function startTimer() {
+  stopTimer();
+  timeLeft = timerDuration;
+  updateTimerDisplay();
+  const circumference = 2 * Math.PI * 30; // r=30
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+
+    const offset = circumference * (1 - timeLeft / timerDuration);
+    const ring = document.getElementById('ring-fg');
+    ring.style.strokeDashoffset = offset;
+
+    if (timeLeft <= timerDuration * 0.3) {
+      ring.className = 'ring-fg danger';
+      document.getElementById('timer-display').style.color = 'var(--ruby)';
+    } else if (timeLeft <= timerDuration * 0.6) {
+      ring.className = 'ring-fg warning';
+      document.getElementById('timer-display').style.color = 'var(--gold)';
+    } else {
+      ring.className = 'ring-fg';
+      document.getElementById('timer-display').style.color = 'var(--text-primary)';
+    }
+
+    if (timeLeft <= 0) {
+      stopTimer();
+      handleTimeUp();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  document.getElementById('timer-display').textContent = m > 0 ? `${m}:${s.toString().padStart(2,'0')}` : timeLeft;
+}
+
+function handleTimeUp() {
+  if (answered) return;
+  answered = true;
+  skippedCount++;
+  document.getElementById('feedback-msg').textContent = t('time_up', {});
+  revealAnswers(-1);
+  const q = currentQuestions[currentQIndex];
+  wrongAnswers.push({ q, chosen: -1 });
+  document.getElementById('next-btn').style.display = 'inline-flex';
+  setNextBtnText();
+}
+
+// ═══════════════════════════════════════════════
+//  SELECT ANSWER
+// ═══════════════════════════════════════════════
+function selectAnswer(chosenIndex) {
+  if (answered) return;
+  answered = true;
+  stopTimer();
+
+  const q = currentQuestions[currentQIndex];
+  const isCorrect = chosenIndex === q.ans;
+  const marks = diffMarks[q.diff];
+
+  revealAnswers(chosenIndex);
+
+  const opts = (currentLang === 'hi' && q.optsHi) ? q.optsHi : q.opts;
+  const correctLabel = ['A','B','C','D'][q.ans] + ') ' + opts[q.ans];
+
+  if (isCorrect) {
+    score += marks;
+    maxScore = maxScore; // already computed
+    correctCount++;
+    document.getElementById('live-score').textContent = score;
+    document.getElementById('feedback-msg').innerHTML = `<span style="color:var(--emerald); font-weight:600;">${t('correct_ans', { marks })}</span>`;
+    showTicker(true, `+${marks}`);
+  } else {
+    incorrectCount++;
+    document.getElementById('feedback-msg').innerHTML = `<span style="color:var(--ruby);">${t('wrong_ans', { correct: correctLabel })}</span>`;
+    showTicker(false, opts[chosenIndex] ? ['A','B','C','D'][chosenIndex] : '?');
+    wrongAnswers.push({ q, chosen: chosenIndex });
+  }
+
+  document.getElementById('next-btn').style.display = 'inline-flex';
+  setNextBtnText();
+}
+
+function revealAnswers(chosenIndex) {
+  const q = currentQuestions[currentQIndex];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.ans) {
+      btn.classList.add(chosenIndex === i ? 'correct' : 'reveal-correct');
+    } else if (i === chosenIndex && chosenIndex !== q.ans) {
+      btn.classList.add('incorrect');
+    }
+  });
+}
+
+function setNextBtnText() {
+  const isLast = currentQIndex === currentQuestions.length - 1;
+  document.getElementById('next-btn-text').textContent = isLast
+    ? (currentLang === 'hi' ? 'टेस्ट समाप्त करें ✓' : 'Finish Test ✓')
+    : (currentLang === 'hi' ? 'अगला →' : 'Next →');
+}
+
+function showTicker(isCorrect, label) {
+  const el = document.createElement('div');
+  el.className = `feedback-ticker ${isCorrect ? 'correct' : 'incorrect'}`;
+  el.textContent = isCorrect ? `✅ +${label} marks!` : `❌ ${label}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1900);
+}
+
+// ═══════════════════════════════════════════════
+//  NEXT QUESTION
+// ═══════════════════════════════════════════════
+function nextQuestion() {
+  if (currentQIndex < currentQuestions.length - 1) {
+    currentQIndex++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  RESULTS
+// ═══════════════════════════════════════════════
+function showResults() {
+  stopTimer();
+  document.getElementById('progress-fill').style.width = '100%';
+
+  const accuracy = currentQuestions.length > 0
+    ? Math.round((correctCount / currentQuestions.length) * 100) : 0;
+  const pct = maxScore > 0 ? (score / maxScore) * 100 : 0;
+
+  document.getElementById('results-subject-name').textContent = subjectMeta[currentSubject].name[currentLang];
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('max-score').textContent = '/ ' + maxScore;
+  document.getElementById('res-correct').textContent = correctCount;
+  document.getElementById('res-incorrect').textContent = incorrectCount;
+  document.getElementById('res-skipped').textContent = skippedCount;
+  document.getElementById('res-accuracy').textContent = accuracy + '%';
+
+  // Score circle color
+  const circle = document.getElementById('score-circle');
+  const color = pct >= 70 ? 'var(--emerald)' : pct >= 40 ? 'var(--gold)' : 'var(--ruby)';
+  document.getElementById('final-score').style.color = color;
+  circle.style.borderColor = color;
+
+  // Grade message
+  let grade, gradeHi;
+  if (pct >= 90)      { grade = "🏆 Outstanding! You're exam-ready!"; gradeHi = "🏆 बेहतरीन! आप परीक्षा के लिए तैयार हैं!"; }
+  else if (pct >= 70) { grade = "🌟 Great performance! Keep it up!"; gradeHi = "🌟 बेहतरीन प्रदर्शन! ऐसे ही चलते रहें!"; }
+  else if (pct >= 50) { grade = "📚 Good effort. A little more revision needed."; gradeHi = "📚 अच्छा प्रयास। थोड़ा और अभ्यास करें।"; }
+  else if (pct >= 30) { grade = "💪 Keep practicing! You can do this."; gradeHi = "💪 अभ्यास जारी रखें! आप यह कर सकते हैं।"; }
+  else                { grade = "📖 Review your notes and try again!"; gradeHi = "📖 नोट्स देखें और दोबारा कोशिश करें!"; }
+  document.getElementById('grade-text').textContent = currentLang === 'hi' ? gradeHi : grade;
+
+  // Wrong answers review
+  const reviewSection = document.getElementById('review-section');
+  const reviewList = document.getElementById('review-list');
+  if (wrongAnswers.length > 0) {
+    reviewSection.style.display = 'block';
+    reviewList.innerHTML = '';
+    wrongAnswers.forEach(({ q, chosen }) => {
+      const qText = (currentLang === 'hi' && q.qHi) ? q.qHi : q.q;
+      const opts = (currentLang === 'hi' && q.optsHi) ? q.optsHi : q.opts;
+      const correctAns = ['A','B','C','D'][q.ans] + ') ' + opts[q.ans];
+      const chosenAns = chosen >= 0 ? ['A','B','C','D'][chosen] + ') ' + opts[chosen] : (currentLang === 'hi' ? 'समय समाप्त' : 'Time up');
+      const div = document.createElement('div');
+      div.className = 'glass';
+      div.style.cssText = 'border-radius:12px; padding:14px 16px; border-color:rgba(239,68,68,0.2);';
+      div.innerHTML = `
+        <p style="font-size:0.88rem; font-weight:500; margin-bottom:10px; line-height:1.5;">${qText}</p>
+        <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:0.82rem;">
+          <span style="color:var(--ruby);">❌ ${chosenAns}</span>
+          <span style="color:var(--emerald);">✅ ${correctAns}</span>
+        </div>`;
+      reviewList.appendChild(div);
+    });
+  } else {
+    reviewSection.style.display = 'none';
+  }
+
+  showScreen('screen-results');
+}
+
+function retakeTest() {
+  // Re-apply same config
+  document.getElementById('unit-filter').value = lastConfig.unitFilter;
+  document.getElementById('diff-filter').value = lastConfig.diffFilter;
+  document.getElementById('q-count').value = lastConfig.qCountVal;
+  startExam();
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  applyLang();
+});
+</script>
+</body>
+</html>
