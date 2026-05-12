@@ -93,6 +93,38 @@
     backdrop-filter: blur(20px);
   }
 
+  .nav-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .nav-brand,
+  .nav-controls,
+  .action-row,
+  .exam-header,
+  .exam-meta,
+  .exam-status,
+  .exam-footer,
+  .results-summary {
+    display: flex;
+  }
+
+  .nav-brand,
+  .nav-controls,
+  .exam-meta,
+  .exam-status {
+    align-items: center;
+  }
+
+  .nav-brand { gap: 12px; }
+  .nav-controls { gap: 16px; flex-wrap: wrap; }
+
   /* ── Subject Cards ── */
   .subject-card {
     position: relative;
@@ -305,6 +337,7 @@
     justify-content: space-between;
     padding: 12px 0;
     border-bottom: 1px solid rgba(255,255,255,0.05);
+    gap: 24px;
   }
 
   /* ── Buttons ── */
@@ -337,11 +370,234 @@
   }
   .btn-secondary:hover { border-color: var(--accent); background: var(--accent-glow); }
 
+  .btn-primary,
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+  }
+
+  .config-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .action-row {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .action-row.end { justify-content: flex-end; }
+  .action-row.center { justify-content: center; }
+
+  .exam-header,
+  .exam-footer,
+  .results-summary {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .exam-header { align-items: center; }
+  .exam-meta { gap: 10px; flex-wrap: wrap; }
+  .exam-status { gap: 16px; }
+
+  .results-summary {
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 36px;
+  }
+
+  .results-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 240px;
+  }
+
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    text-align: center;
+  }
+
   /* ── Responsive ── */
+  @media (max-width: 900px) {
+    #screen-home,
+    #screen-config,
+    #screen-exam,
+    #screen-results {
+      padding-left: 16px !important;
+      padding-right: 16px !important;
+    }
+
+    .config-grid { grid-template-columns: 1fr; }
+
+    .action-row.end,
+    .action-row.center,
+    .exam-footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .action-row > button,
+    .exam-footer > button,
+    #next-btn {
+      width: 100%;
+    }
+
+    .exam-header {
+      align-items: flex-start;
+    }
+
+    .exam-status {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .results-stats {
+      width: 100%;
+      min-width: 0;
+      max-width: 360px;
+    }
+
+    .feedback-ticker {
+      left: 16px;
+      right: 16px;
+      text-align: center;
+    }
+  }
+
   @media (max-width: 640px) {
     .subject-grid { grid-template-columns: 1fr !important; }
     .timer-ring { width: 56px; height: 56px; }
     .timer-display { font-size: 0.8rem; }
+
+    .nav-shell {
+      padding: 12px 16px;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .nav-brand,
+    .nav-controls {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .legend-grid { grid-template-columns: 1fr; gap: 12px; }
+
+    #screen-home { padding-top: 28px !important; }
+
+    #screen-home .subject-card,
+    #screen-config .glass,
+    #screen-exam .glass,
+    #screen-results .glass {
+      padding: 22px 18px !important;
+    }
+
+    #question-text {
+      font-size: 0.98rem !important;
+      line-height: 1.65 !important;
+    }
+
+    .option-btn {
+      padding: 13px 14px;
+      font-size: 0.92rem;
+    }
+
+    .score-circle {
+      width: 120px;
+      height: 120px;
+    }
+
+    .stat-number { font-size: 1.8rem !important; }
+
+    .result-row {
+      gap: 12px;
+      font-size: 0.88rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .nav-brand,
+    .nav-controls,
+    .exam-status,
+    .exam-meta {
+      gap: 10px;
+    }
+
+    .nav-brand,
+    .nav-controls,
+    .exam-status {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .nav-brand {
+      text-align: center;
+    }
+
+    .nav-dot { margin: 0 auto; }
+
+    #nav-title {
+      font-size: 1rem !important;
+      text-align: center;
+    }
+
+    .lang-toggle {
+      align-self: center;
+    }
+
+    #home-btn {
+      width: 100%;
+    }
+
+    #screen-home,
+    #screen-config,
+    #screen-results {
+      padding-top: 24px !important;
+    }
+
+    #screen-exam {
+      padding-top: 20px !important;
+    }
+
+    #screen-home .subject-card {
+      padding: 20px 16px !important;
+    }
+
+    #screen-home p,
+    #config-desc,
+    #results-subject-name {
+      font-size: 0.88rem !important;
+    }
+
+    .badge {
+      font-size: 0.68rem;
+      padding: 3px 9px;
+    }
+
+    select {
+      min-height: 44px;
+      font-size: 0.9rem;
+    }
+
+    .score-circle {
+      width: 108px;
+      height: 108px;
+    }
+
+    .feedback-ticker {
+      top: 70px;
+      font-size: 0.82rem;
+      padding: 10px 14px;
+    }
   }
 
   /* ── Highlight number ── */
@@ -419,12 +675,12 @@
 
 <!-- NAVBAR -->
 <nav id="navbar">
-  <div style="max-width:1100px; margin:0 auto; padding: 14px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
-    <div style="display:flex; align-items:center; gap:12px;">
+  <div class="nav-shell">
+    <div class="nav-brand">
       <div class="nav-dot"></div>
       <span class="font-editorial" style="font-size:1.1rem; font-weight:700;" id="nav-title">MAJMC Mock Tests</span>
     </div>
-    <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+    <div class="nav-controls">
       <div class="lang-toggle" onclick="toggleLang()">
         <span id="lang-en" class="active-lang">EN</span>
         <span id="lang-hi">हि</span>
@@ -503,7 +759,7 @@
   <!-- Scoring Legend -->
   <div class="glass" style="border-radius:16px; padding:24px; max-width:600px; margin:0 auto;">
     <h4 class="font-editorial" style="font-size:1rem; margin-bottom:16px; text-align:center; color:var(--text-secondary);" data-en="Tiered Scoring System" data-hi="स्तरीय स्कोरिंग प्रणाली">Tiered Scoring System</h4>
-    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; text-align:center;">
+    <div class="legend-grid">
       <div>
         <div class="stat-number" style="color:var(--emerald);">1</div>
         <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;" data-en="mark · Easy" data-hi="अंक · आसान">mark · Easy</div>
@@ -527,7 +783,7 @@
     <h2 class="font-editorial" id="config-title" style="font-size:1.8rem; font-weight:700; margin-bottom:8px;"></h2>
     <p id="config-desc" style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:28px; line-height:1.7;"></p>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+    <div class="config-grid">
       <div>
         <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:8px;" data-en="Unit Filter" data-hi="यूनिट फ़िल्टर">Unit Filter</label>
         <select id="unit-filter" style="width:100%;">
@@ -566,7 +822,7 @@
       </div>
     </div>
 
-    <div style="display:flex; gap:12px; justify-content:flex-end;">
+    <div class="action-row end">
       <button class="btn-secondary" onclick="goHome()"><span data-en="Cancel" data-hi="रद्द करें">Cancel</span></button>
       <button class="btn-primary" onclick="startExam()">🚀 <span data-en="Start Test" data-hi="टेस्ट शुरू करें">Start Test</span></button>
     </div>
@@ -577,15 +833,15 @@
 <div id="screen-exam" class="screen" style="max-width:800px; margin:0 auto; padding:24px 20px;">
 
   <!-- Exam Header -->
-  <div class="glass" style="border-radius:16px; padding:16px 20px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+  <div class="glass exam-header" style="border-radius:16px; padding:16px 20px; margin-bottom:20px;">
     <div>
       <div id="exam-subject-name" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:2px;"></div>
-      <div style="display:flex; align-items:center; gap:10px;">
+      <div class="exam-meta">
         <span class="q-pill" id="q-counter">Q 1 / 30</span>
         <span id="diff-badge"></span>
       </div>
     </div>
-    <div style="display:flex; align-items:center; gap:16px;">
+    <div class="exam-status">
       <div id="score-display" style="text-align:right;">
         <div style="font-size:0.72rem; color:var(--text-secondary);" data-en="Score" data-hi="स्कोर">Score</div>
         <div class="font-mono" style="font-size:1.2rem; color:var(--accent);" id="live-score">0</div>
@@ -613,7 +869,7 @@
   </div>
 
   <!-- Nav Buttons -->
-  <div style="display:flex; justify-content:space-between; align-items:center;">
+  <div class="exam-footer">
     <div id="feedback-msg" style="font-size:0.85rem; color:var(--text-secondary); min-height:20px;"></div>
     <button class="btn-primary" id="next-btn" onclick="nextQuestion()" style="display:none;">
       <span id="next-btn-text" data-en="Next →" data-hi="अगला →">Next →</span>
@@ -629,26 +885,26 @@
       <p style="color:var(--text-secondary); font-size:0.9rem;" id="results-subject-name"></p>
     </div>
 
-    <div style="display:flex; align-items:center; justify-content:center; gap:40px; flex-wrap:wrap; margin-bottom:36px;">
+    <div class="results-summary">
       <div class="score-circle score-animate" id="score-circle">
         <div class="stat-number" id="final-score" style="color:var(--accent);">0</div>
         <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;" data-en="/ max marks" data-hi="/ अधिकतम अंक">/ max marks</div>
         <div class="font-mono" id="max-score" style="font-size:0.9rem; color:var(--text-muted);">0</div>
       </div>
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <div class="result-row" style="gap:24px;">
+      <div class="results-stats">
+        <div class="result-row">
           <span style="color:var(--text-secondary); font-size:0.9rem;" data-en="✅ Correct" data-hi="✅ सही">✅ Correct</span>
           <span class="font-mono" id="res-correct" style="color:var(--emerald); font-size:1.1rem;">0</span>
         </div>
-        <div class="result-row" style="gap:24px;">
+        <div class="result-row">
           <span style="color:var(--text-secondary); font-size:0.9rem;" data-en="❌ Incorrect" data-hi="❌ गलत">❌ Incorrect</span>
           <span class="font-mono" id="res-incorrect" style="color:var(--ruby); font-size:1.1rem;">0</span>
         </div>
-        <div class="result-row" style="gap:24px;">
+        <div class="result-row">
           <span style="color:var(--text-secondary); font-size:0.9rem;" data-en="⏭ Skipped" data-hi="⏭ छोड़ा">⏭ Skipped</span>
           <span class="font-mono" id="res-skipped" style="color:var(--gold); font-size:1.1rem;">0</span>
         </div>
-        <div class="result-row" style="gap:24px; border:none;">
+        <div class="result-row" style="border:none;">
           <span style="color:var(--text-secondary); font-size:0.9rem;" data-en="📊 Accuracy" data-hi="📊 सटीकता">📊 Accuracy</span>
           <span class="font-mono" id="res-accuracy" style="color:var(--accent); font-size:1.1rem;">0%</span>
         </div>
@@ -666,7 +922,7 @@
       <div id="review-list" style="display:flex; flex-direction:column; gap:12px;"></div>
     </div>
 
-    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+    <div class="action-row center">
       <button class="btn-primary" onclick="retakeTest()">🔄 <span data-en="Retake Test" data-hi="दोबारा टेस्ट दें">Retake Test</span></button>
       <button class="btn-secondary" onclick="goHome()">🏠 <span data-en="Choose Subject" data-hi="विषय चुनें">Choose Subject</span></button>
     </div>
