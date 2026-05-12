@@ -431,7 +431,8 @@
     #screen-home,
     #screen-config,
     #screen-exam,
-    #screen-results {
+    #screen-results,
+    #screen-progress {
       padding-left: 16px !important;
       padding-right: 16px !important;
     }
@@ -669,6 +670,124 @@
     cursor: pointer;
   }
   select option { background: #1b2d40; }
+
+  /* ── Quiz Mode Selector ── */
+  .mode-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .mode-option {
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 2px solid var(--glass-border);
+    background: var(--glass);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    user-select: none;
+  }
+  .mode-option:hover { border-color: var(--accent); background: var(--accent-glow); }
+  .mode-option.selected {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+    box-shadow: 0 0 20px rgba(56,189,248,0.15);
+  }
+  .mode-option .mode-icon { font-size: 1.5rem; margin-bottom: 6px; }
+  .mode-option .mode-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+  .mode-option .mode-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+
+  /* ── Subject Card Mini-Progress ── */
+  .card-mini-progress {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .card-mini-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .card-mini-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.5s ease;
+  }
+
+  /* ── Progress Dashboard ── */
+  .stat-card {
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+  .progress-screen-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .progress-subject-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    backdrop-filter: blur(16px);
+  }
+  .subject-progress-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .subject-progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s ease;
+  }
+  .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+  }
+  .streak-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 99px;
+    background: rgba(245,158,11,0.15);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: var(--gold);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .all-done-msg {
+    padding: 16px;
+    border-radius: 12px;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: var(--gold);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 640px) {
+    .mode-selector { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -685,6 +804,9 @@
         <span id="lang-en" class="active-lang">EN</span>
         <span id="lang-hi">हि</span>
       </div>
+      <button class="btn-secondary" onclick="showProgress()" id="progress-btn" style="padding:8px 16px; font-size:0.85rem; display:flex;">
+        📊 <span data-en="My Progress" data-hi="मेरी प्रगति">My Progress</span>
+      </button>
       <button class="btn-secondary" id="home-btn" onclick="goHome()" style="display:none; padding:8px 16px; font-size:0.85rem;">
         ← <span data-en="Home" data-hi="होम">Home</span>
       </button>
@@ -719,6 +841,12 @@
         <span class="badge badge-easy">247 Qs</span>
         <span class="badge badge-moderate">5 Units</span>
       </div>
+      <div class="card-mini-progress" id="home-prog-radio">
+        <div class="card-mini-bar">
+          <div class="card-mini-fill" style="width:0%; background:linear-gradient(90deg,var(--accent),#818cf8);"></div>
+        </div>
+        <div class="card-mini-text" style="font-size:0.75rem; color:var(--text-muted);" data-en="Not started yet" data-hi="अभी शुरू नहीं">Not started yet</div>
+      </div>
     </div>
 
     <div class="subject-card glass card-ict" onclick="selectSubject('ict')" style="padding:28px;">
@@ -729,6 +857,12 @@
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <span class="badge badge-easy">250 Qs</span>
         <span class="badge badge-moderate">5 Units</span>
+      </div>
+      <div class="card-mini-progress" id="home-prog-ict">
+        <div class="card-mini-bar">
+          <div class="card-mini-fill" style="width:0%; background:linear-gradient(90deg,var(--emerald),#34d399);"></div>
+        </div>
+        <div class="card-mini-text" style="font-size:0.75rem; color:var(--text-muted);" data-en="Not started yet" data-hi="अभी शुरू नहीं">Not started yet</div>
       </div>
     </div>
 
@@ -741,6 +875,12 @@
         <span class="badge badge-easy">200 Qs</span>
         <span class="badge badge-moderate">4 Units</span>
       </div>
+      <div class="card-mini-progress" id="home-prog-dev">
+        <div class="card-mini-bar">
+          <div class="card-mini-fill" style="width:0%; background:linear-gradient(90deg,var(--gold),#fbbf24);"></div>
+        </div>
+        <div class="card-mini-text" style="font-size:0.75rem; color:var(--text-muted);" data-en="Not started yet" data-hi="अभी शुरू नहीं">Not started yet</div>
+      </div>
     </div>
 
     <div class="subject-card glass card-iconic" onclick="selectSubject('iconic')" style="padding:28px;">
@@ -751,6 +891,12 @@
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <span class="badge badge-easy">190 Qs</span>
         <span class="badge badge-moderate">2 Units</span>
+      </div>
+      <div class="card-mini-progress" id="home-prog-iconic">
+        <div class="card-mini-bar">
+          <div class="card-mini-fill" style="width:0%; background:linear-gradient(90deg,#c084fc,#a855f7);"></div>
+        </div>
+        <div class="card-mini-text" style="font-size:0.75rem; color:var(--text-muted);" data-en="Not started yet" data-hi="अभी शुरू नहीं">Not started yet</div>
       </div>
     </div>
 
@@ -819,6 +965,25 @@
           <option value="90">90 seconds</option>
           <option value="120">2 minutes</option>
         </select>
+      </div>
+    </div>
+
+    <!-- Quiz Mode Selector -->
+    <div style="margin-bottom:24px;">
+      <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:12px;" data-en="Quiz Mode" data-hi="क्विज़ मोड">Quiz Mode</label>
+      <div class="mode-selector">
+        <label class="mode-option selected" id="mode-all-label">
+          <input type="radio" name="quiz-mode" value="all" checked style="display:none;">
+          <div class="mode-icon">📚</div>
+          <div class="mode-title" data-en="Practice All" data-hi="सभी अभ्यास करें">Practice All</div>
+          <div class="mode-desc" data-en="All questions including previously attempted" data-hi="पहले किए गए प्रश्न सहित सभी">All questions including previously attempted</div>
+        </label>
+        <label class="mode-option" id="mode-unique-label">
+          <input type="radio" name="quiz-mode" value="unique" style="display:none;">
+          <div class="mode-icon">✨</div>
+          <div class="mode-title" data-en="Practice Unique" data-hi="नए प्रश्न">Practice Unique</div>
+          <div class="mode-desc" id="unique-mode-desc" data-en="Only unattempted questions" data-hi="केवल नए प्रश्न">Only unattempted questions</div>
+        </label>
       </div>
     </div>
 
@@ -927,6 +1092,82 @@
       <button class="btn-secondary" onclick="goHome()">🏠 <span data-en="Choose Subject" data-hi="विषय चुनें">Choose Subject</span></button>
     </div>
   </div>
+</div>
+
+<!-- SCREEN: MY PROGRESS DASHBOARD -->
+<div id="screen-progress" class="screen" style="max-width:900px; margin:0 auto; padding:40px 20px;">
+
+  <!-- Header -->
+  <div class="progress-screen-header">
+    <div>
+      <h2 class="font-editorial" style="font-size:1.8rem; font-weight:700;" data-en="My Progress" data-hi="मेरी प्रगति">My Progress</h2>
+      <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px; font-family:'JetBrains Mono',monospace;" id="prog-guest-id"></div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <button class="btn-secondary" onclick="exportProgress()" style="padding:8px 16px; font-size:0.85rem;">
+        📤 <span data-en="Export" data-hi="निर्यात">Export</span>
+      </button>
+      <button class="btn-secondary" onclick="resetProgress()" style="padding:8px 16px; font-size:0.85rem; border-color:rgba(239,68,68,0.3); color:var(--ruby);">
+        🗑️ <span data-en="Reset" data-hi="रीसेट">Reset</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Overall Stat Cards -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin-bottom:24px;">
+    <div class="stat-card glass">
+      <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;" data-en="Total Attempted" data-hi="कुल प्रयास">Total Attempted</div>
+      <div class="stat-number" style="color:var(--accent);" id="prog-total-attempted">0</div>
+    </div>
+    <div class="stat-card glass">
+      <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;" data-en="Correct" data-hi="सही">Correct</div>
+      <div class="stat-number" style="color:var(--emerald);" id="prog-total-correct">0</div>
+    </div>
+    <div class="stat-card glass">
+      <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;" data-en="Wrong" data-hi="गलत">Wrong</div>
+      <div class="stat-number" style="color:var(--ruby);" id="prog-total-wrong">0</div>
+    </div>
+    <div class="stat-card glass">
+      <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;" data-en="Accuracy" data-hi="सटीकता">Accuracy</div>
+      <div class="stat-number" style="color:var(--gold);" id="prog-accuracy">0%</div>
+    </div>
+  </div>
+
+  <!-- Overall Completion Bar -->
+  <div class="glass" style="border-radius:16px; padding:20px; margin-bottom:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <span style="font-size:0.88rem; font-weight:600;" data-en="Overall Completion" data-hi="कुल पूर्णता">Overall Completion</span>
+      <span style="font-size:0.88rem; font-weight:600; color:var(--accent);" id="prog-overall-pct">0%</span>
+    </div>
+    <div class="progress-track" style="height:10px;">
+      <div class="progress-fill" id="prog-overall-bar" style="width:0%;"></div>
+    </div>
+    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:8px;" id="prog-overall-label"></div>
+  </div>
+
+  <!-- Streak & Last Active -->
+  <div class="glass" style="border-radius:16px; padding:18px 20px; margin-bottom:24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+    <div id="prog-streak" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; flex:1;"></div>
+    <div style="font-size:0.82rem; color:var(--text-muted); flex-shrink:0;">
+      <span data-en="Last active: " data-hi="अंतिम सक्रिय: ">Last active: </span>
+      <span id="prog-last-active" style="color:var(--text-secondary);">—</span>
+    </div>
+  </div>
+
+  <!-- Subject-wise Progress -->
+  <h3 class="font-editorial" style="font-size:1.1rem; margin-bottom:14px;" data-en="Subject-wise Progress" data-hi="विषयवार प्रगति">Subject-wise Progress</h3>
+  <div id="prog-subject-list" style="display:flex; flex-direction:column; gap:12px; margin-bottom:28px;"></div>
+
+  <!-- Weak Subjects -->
+  <div id="prog-weak-section" style="margin-bottom:28px; display:none;">
+    <h3 class="font-editorial" style="font-size:1.1rem; margin-bottom:12px;" data-en="⚠️ Needs Improvement" data-hi="⚠️ सुधार की आवश्यकता">⚠️ Needs Improvement</h3>
+    <div id="prog-weak-list" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+  </div>
+
+  <!-- Recent Activity -->
+  <h3 class="font-editorial" style="font-size:1.1rem; margin-bottom:14px;" data-en="Recent Activity" data-hi="हालिया गतिविधि">Recent Activity</h3>
+  <div id="prog-activity-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+
 </div>
 
 <script>
@@ -1240,6 +1481,7 @@ let timerDuration = 45;
 let timeLeft = 45;
 let wrongAnswers = [];
 let lastConfig = {};
+let quizMode = 'all'; // 'all' | 'unique'
 
 // Subject meta
 const subjectMeta = {
@@ -1292,6 +1534,401 @@ function t(key, data) {
 }
 
 // ═══════════════════════════════════════════════
+//  ANONYMOUS USER HISTORY & PROGRESS TRACKING
+// ═══════════════════════════════════════════════
+
+const STORAGE_GUEST_KEY    = 'majmc_guestId';
+const STORAGE_PROGRESS_KEY = 'majmc_progress';
+
+// ── Subject colours for dashboard ──
+const SUBJ_COLORS = {
+  radio:  { fill: 'linear-gradient(90deg,var(--accent),#818cf8)',   accent: 'var(--accent)' },
+  ict:    { fill: 'linear-gradient(90deg,var(--emerald),#34d399)',  accent: 'var(--emerald)' },
+  dev:    { fill: 'linear-gradient(90deg,var(--gold),#fbbf24)',     accent: 'var(--gold)' },
+  iconic: { fill: 'linear-gradient(90deg,#c084fc,#a855f7)',         accent: '#c084fc' }
+};
+
+/** Generate a random 8-char alphanumeric guest ID */
+function generateGuestId() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let id = 'guest_';
+  for (let i = 0; i < 8; i++) id += chars[Math.floor(Math.random() * chars.length)];
+  return id;
+}
+
+/** Get or create a persistent guest ID in localStorage */
+function getGuestId() {
+  let id = localStorage.getItem(STORAGE_GUEST_KEY);
+  if (!id) { id = generateGuestId(); localStorage.setItem(STORAGE_GUEST_KEY, id); }
+  return id;
+}
+
+/** Create a blank per-subject progress object */
+function createEmptySubjectProgress() {
+  return { attemptedQuestions: [], correct: 0, wrong: 0, skipped: 0, accuracy: 0,
+           totalAttempted: 0, recentQuizzes: [] };
+}
+
+/** Load progress from localStorage (returns null on error) */
+function loadProgress() {
+  try { const r = localStorage.getItem(STORAGE_PROGRESS_KEY); return r ? JSON.parse(r) : null; }
+  catch(e) { return null; }
+}
+
+/** Save progress to localStorage */
+function saveProgress(data) {
+  try { localStorage.setItem(STORAGE_PROGRESS_KEY, JSON.stringify(data)); }
+  catch(e) { console.warn('Could not save progress:', e); }
+}
+
+/** Return the full progress object, initialising missing fields as needed */
+function getUserProgress() {
+  const guestId = getGuestId();
+  let p = loadProgress();
+  if (!p || !p.guestId) {
+    p = { guestId, subjects: {}, recentActivity: [], lastActive: null,
+          streak: { current: 0, lastActiveDate: null } };
+  }
+  // Ensure every subject key is present
+  Object.keys(subjectMeta).forEach(k => { if (!p.subjects[k]) p.subjects[k] = createEmptySubjectProgress(); });
+  return p;
+}
+
+// ── Stable question ID using djb2 hash of question text ──
+function hashQuestion(q) {
+  let h = 5381;
+  for (let i = 0; i < q.q.length; i++) { h = ((h << 5) + h) ^ q.q.charCodeAt(i); h |= 0; }
+  return Math.abs(h).toString(36);
+}
+
+/** Attach stable _id to every question in the bank at startup */
+function buildQuestionIds() {
+  Object.keys(questionBank).forEach(subj =>
+    questionBank[subj].forEach(q => { q._id = hashQuestion(q); })
+  );
+}
+
+// ── Streak helper ──
+function updateStreak(p) {
+  const today = new Date().toISOString().split('T')[0];
+  const last  = p.streak.lastActiveDate;
+  if (!last) {
+    p.streak.current = 1; p.streak.lastActiveDate = today;
+  } else if (last !== today) {
+    const diff = Math.round((new Date(today) - new Date(last)) / 86400000);
+    p.streak.current = diff === 1 ? p.streak.current + 1 : 1;
+    p.streak.lastActiveDate = today;
+  }
+}
+
+/**
+ * Record a completed quiz attempt in the user's history.
+ * Accumulates unique attempted question IDs and running tallies.
+ */
+function recordQuizAttempt(subject, questions, results) {
+  const p    = getUserProgress();
+  const subj = p.subjects[subject];
+
+  // Merge attempted question IDs (deduped)
+  const seen = new Set(subj.attemptedQuestions);
+  questions.forEach(q => { if (q._id) seen.add(q._id); });
+  subj.attemptedQuestions = Array.from(seen);
+  subj.totalAttempted     = subj.attemptedQuestions.length;
+
+  // Running totals
+  subj.correct  += results.correct;
+  subj.wrong    += results.wrong;
+  subj.skipped  += results.skipped;
+  const total    = subj.correct + subj.wrong + subj.skipped;
+  subj.accuracy  = total > 0 ? Math.round((subj.correct / total) * 100) : 0;
+
+  // Per-quiz summary (keep last 10)
+  const qs = {
+    timestamp:      new Date().toISOString(),
+    questionsCount: questions.length,
+    correct:  results.correct,
+    wrong:    results.wrong,
+    skipped:  results.skipped,
+    accuracy: questions.length > 0
+      ? Math.round((results.correct / questions.length) * 100) : 0,
+    score:    results.score,
+    maxScore: results.maxScore
+  };
+  subj.recentQuizzes.unshift(qs);
+  if (subj.recentQuizzes.length > 10) subj.recentQuizzes.pop();
+
+  // Global recent activity (keep last 20)
+  p.recentActivity.unshift({ subject, ...qs });
+  if (p.recentActivity.length > 20) p.recentActivity.pop();
+
+  p.lastActive = new Date().toISOString();
+  updateStreak(p);
+  saveProgress(p);
+}
+
+/** Return only questions from `pool` that haven't been attempted yet */
+function filterUniquePool(subject, pool) {
+  const p       = getUserProgress();
+  const seen    = new Set(p.subjects[subject]?.attemptedQuestions || []);
+  return pool.filter(q => q._id && !seen.has(q._id));
+}
+
+// ── Relative time helper ──
+function timeAgo(iso) {
+  if (!iso) return '';
+  const diff  = Date.now() - new Date(iso).getTime();
+  const mins  = Math.floor(diff / 60000);
+  const hours = Math.floor(mins / 60);
+  const days  = Math.floor(hours / 24);
+  if (days > 0)  return days === 1 ? 'Yesterday' : `${days} days ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (mins > 0)  return `${mins}m ago`;
+  return 'Just now';
+}
+
+// ── Update mini-progress bars on subject cards ──
+function updateHomeCardProgress() {
+  const p = getUserProgress();
+  Object.keys(subjectMeta).forEach(key => {
+    const el = document.getElementById(`home-prog-${key}`);
+    if (!el) return;
+    const s        = p.subjects[key] || createEmptySubjectProgress();
+    const total    = questionBank[key]?.length || 1;
+    const attempted = s.attemptedQuestions?.length || 0;
+    const pct      = Math.round((attempted / total) * 100);
+    el.querySelector('.card-mini-fill').style.width = pct + '%';
+    const textEl = el.querySelector('.card-mini-text');
+    if (attempted > 0) {
+      textEl.removeAttribute('data-en'); textEl.removeAttribute('data-hi');
+      textEl.textContent = `${attempted}/${total} attempted · ${s.accuracy || 0}% accuracy`;
+    } else {
+      textEl.setAttribute('data-en', 'Not started yet');
+      textEl.setAttribute('data-hi', 'अभी शुरू नहीं');
+      textEl.textContent = currentLang === 'hi' ? 'अभी शुरू नहीं' : 'Not started yet';
+    }
+  });
+}
+
+// ── Show "all questions attempted" inline message ──
+function showAllAttemptedMessage(msg) {
+  const existing = document.getElementById('unique-all-done-msg');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = 'unique-all-done-msg';
+  el.className = 'all-done-msg';
+  el.textContent = msg;
+  const actionRow = document.querySelector('#screen-config .action-row');
+  actionRow.parentNode.insertBefore(el, actionRow);
+}
+
+// ── Update unique mode description with live count ──
+function updateUniqueModeDesc() {
+  if (!currentSubject) return;
+  const unitFilter = document.getElementById('unit-filter').value;
+  const diffFilter = document.getElementById('diff-filter').value;
+  let pool = questionBank[currentSubject].filter(q => {
+    const unitOk = unitFilter === 'all' || q.unit === unitFilter;
+    const diffOk = diffFilter === 'all' || q.diff === diffFilter;
+    return unitOk && diffOk;
+  });
+  const uniqueCount = filterUniquePool(currentSubject, pool).length;
+  const descEl = document.getElementById('unique-mode-desc');
+  if (descEl) {
+    descEl.removeAttribute('data-en'); descEl.removeAttribute('data-hi');
+    descEl.textContent = `${uniqueCount} unattempted out of ${pool.length}`;
+  }
+}
+
+// ── Render the My Progress dashboard ──
+function renderProgressDashboard() {
+  const p = getUserProgress();
+
+  // Aggregate overall stats
+  let totalAttempted = 0, totalCorrect = 0, totalWrong = 0, totalSkipped = 0;
+  Object.keys(subjectMeta).forEach(key => {
+    const s = p.subjects[key] || createEmptySubjectProgress();
+    totalAttempted += s.totalAttempted || 0;
+    totalCorrect   += s.correct  || 0;
+    totalWrong     += s.wrong    || 0;
+    totalSkipped   += s.skipped  || 0;
+  });
+  const overallTotal    = totalCorrect + totalWrong + totalSkipped;
+  const overallAccuracy = overallTotal > 0 ? Math.round((totalCorrect / overallTotal) * 100) : 0;
+
+  const totalInBank = Object.keys(questionBank).reduce((acc, k) => acc + questionBank[k].length, 0);
+  const completionPct = totalInBank > 0 ? Math.round((totalAttempted / totalInBank) * 100) : 0;
+
+  // Header info
+  document.getElementById('prog-guest-id').textContent = p.guestId;
+
+  // Stat cards
+  document.getElementById('prog-total-attempted').textContent = overallTotal;
+  document.getElementById('prog-total-correct').textContent   = totalCorrect;
+  document.getElementById('prog-total-wrong').textContent     = totalWrong;
+  document.getElementById('prog-accuracy').textContent        = overallAccuracy + '%';
+
+  // Completion bar
+  document.getElementById('prog-overall-bar').style.width = completionPct + '%';
+  document.getElementById('prog-overall-pct').textContent = completionPct + '%';
+  document.getElementById('prog-overall-label').textContent =
+    `${totalAttempted} unique questions seen out of ${totalInBank} total`;
+
+  // Streak
+  const streak = p.streak?.current || 0;
+  document.getElementById('prog-streak').innerHTML = `
+    <span class="streak-badge">🔥 ${streak} day${streak !== 1 ? 's' : ''} streak</span>`;
+
+  // Last active
+  document.getElementById('prog-last-active').textContent = p.lastActive
+    ? new Date(p.lastActive).toLocaleDateString('en-IN',
+        { weekday:'short', year:'numeric', month:'short', day:'numeric' })
+    : '—';
+
+  // Subject-wise rows
+  const listEl = document.getElementById('prog-subject-list');
+  listEl.innerHTML = '';
+  const weakSubjects = [];
+
+  Object.keys(subjectMeta).forEach(key => {
+    const s     = p.subjects[key] || createEmptySubjectProgress();
+    const meta  = subjectMeta[key];
+    const clr   = SUBJ_COLORS[key];
+    const total = questionBank[key]?.length || 1;
+    const att   = s.attemptedQuestions?.length || 0;
+    const pct   = Math.round((att / total) * 100);
+    const acc   = s.accuracy || 0;
+    const last  = s.recentQuizzes?.[0];
+
+    if (s.correct + s.wrong >= 5 && acc < 50) weakSubjects.push({ key, name: meta.name.en, accuracy: acc });
+
+    const div = document.createElement('div');
+    div.className = 'progress-subject-row';
+    div.innerHTML = `
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:1.4rem;">${meta.icon}</span>
+          <div>
+            <div style="font-weight:600; font-size:0.95rem;">${meta.name[currentLang]}</div>
+            <div style="font-size:0.78rem; color:var(--text-muted);">${att} / ${total} questions seen</div>
+          </div>
+        </div>
+        <div style="text-align:right; flex-shrink:0;">
+          <div style="font-size:0.85rem; color:${clr.accent}; font-weight:600;">${acc}% accuracy</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">${last ? timeAgo(last.timestamp) : 'No attempts yet'}</div>
+        </div>
+      </div>
+      <div class="subject-progress-bar">
+        <div class="subject-progress-fill" style="width:${pct}%; background:${clr.fill};"></div>
+      </div>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:0.8rem; color:var(--text-secondary);">
+        <span style="color:var(--emerald);">✅ ${s.correct} correct</span>
+        <span style="color:var(--ruby);">❌ ${s.wrong} wrong</span>
+        <span style="color:var(--gold);">⏭ ${s.skipped} skipped</span>
+        <span style="color:var(--text-muted);">${pct}% complete</span>
+      </div>`;
+    listEl.appendChild(div);
+  });
+
+  // Weak subjects section
+  const weakEl = document.getElementById('prog-weak-section');
+  if (weakSubjects.length > 0) {
+    weakEl.style.display = 'block';
+    document.getElementById('prog-weak-list').innerHTML = weakSubjects.map(ws =>
+      `<span class="badge" style="background:rgba(239,68,68,0.15); color:var(--ruby);
+         border:1px solid rgba(239,68,68,0.3); font-size:0.82rem; padding:5px 12px;">
+        ${ws.name} · ${ws.accuracy}%</span>`
+    ).join('');
+  } else {
+    weakEl.style.display = 'none';
+  }
+
+  // Recent activity
+  const actEl = document.getElementById('prog-activity-list');
+  actEl.innerHTML = '';
+  const recent = p.recentActivity.slice(0, 8);
+  if (recent.length === 0) {
+    actEl.innerHTML = '<p style="color:var(--text-muted); font-size:0.88rem; text-align:center; padding:20px 0;">No activity yet. Start a quiz to see your history here!</p>';
+  } else {
+    recent.forEach(act => {
+      const meta = subjectMeta[act.subject];
+      const div  = document.createElement('div');
+      div.className = 'activity-item';
+      div.innerHTML = `
+        <span style="font-size:1.4rem;">${meta?.icon || '📚'}</span>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:0.88rem; font-weight:600;">${meta?.name[currentLang] || act.subject}</div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">${act.questionsCount} Qs · ${act.correct}✅ ${act.wrong}❌ ${act.skipped}⏭</div>
+        </div>
+        <div style="text-align:right; flex-shrink:0;">
+          <div style="font-size:0.85rem; color:var(--accent); font-weight:600;">${act.accuracy}%</div>
+          <div style="font-size:0.72rem; color:var(--text-muted);">${timeAgo(act.timestamp)}</div>
+        </div>`;
+      actEl.appendChild(div);
+    });
+  }
+}
+
+// ── Show the My Progress screen ──
+function showProgress() {
+  stopTimer();
+  renderProgressDashboard();
+  showScreen('screen-progress');
+  document.getElementById('nav-title').textContent = currentLang === 'hi' ? 'मेरी प्रगति' : 'My Progress';
+  applyLang();
+}
+
+// ── Reset all progress ──
+function resetProgress() {
+  const msg = currentLang === 'hi'
+    ? 'क्या आप वाकई अपनी सभी प्रगति रीसेट करना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।'
+    : 'Reset ALL progress? This cannot be undone.';
+  if (!confirm(msg)) return;
+  localStorage.removeItem(STORAGE_PROGRESS_KEY);
+  renderProgressDashboard();
+  updateHomeCardProgress();
+  showToast(currentLang === 'hi' ? 'प्रगति रीसेट हो गई!' : 'Progress reset!');
+}
+
+// ── Export progress as JSON ──
+function exportProgress() {
+  const p = getUserProgress();
+  const out = {
+    exportedAt: new Date().toISOString(),
+    guestId:    p.guestId,
+    stats:      {},
+    recentActivity: p.recentActivity.slice(0, 10)
+  };
+  Object.keys(subjectMeta).forEach(key => {
+    const s = p.subjects[key] || createEmptySubjectProgress();
+    out.stats[key] = { name: subjectMeta[key].name.en, attempted: s.totalAttempted || 0,
+      correct: s.correct || 0, wrong: s.wrong || 0, skipped: s.skipped || 0, accuracy: s.accuracy || 0 };
+  });
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `majmc-progress-${p.guestId}-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(currentLang === 'hi' ? 'प्रगति निर्यात हो गई!' : 'Progress exported!');
+}
+
+// ── Bottom toast notification ──
+function showToast(message) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);' +
+    'background:rgba(56,189,248,0.92);color:#fff;padding:11px 22px;border-radius:12px;' +
+    'font-weight:600;font-size:0.88rem;z-index:9999;transition:transform .3s ease,opacity .3s ease;pointer-events:none;';
+  el.textContent = message;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => { el.style.transform = 'translateX(-50%) translateY(0)'; });
+  setTimeout(() => {
+    el.style.opacity = '0'; el.style.transform = 'translateX(-50%) translateY(20px)';
+    setTimeout(() => el.remove(), 350);
+  }, 2500);
+}
+
+// ═══════════════════════════════════════════════
 //  NAVIGATION
 // ═══════════════════════════════════════════════
 function showScreen(id) {
@@ -1308,6 +1945,7 @@ function goHome() {
   stopTimer();
   showScreen('screen-home');
   document.getElementById('nav-title').textContent = 'MAJMC Mock Tests';
+  updateHomeCardProgress();
 }
 
 // ═══════════════════════════════════════════════
@@ -1337,6 +1975,10 @@ function selectSubject(subject) {
   });
 
   showScreen('screen-config');
+  updateUniqueModeDesc();
+  // Clear any leftover "all attempted" message from a previous visit
+  const prevMsg = document.getElementById('unique-all-done-msg');
+  if (prevMsg) prevMsg.remove();
 }
 
 // ═══════════════════════════════════════════════
@@ -1347,14 +1989,34 @@ function startExam() {
   const diffFilter = document.getElementById('diff-filter').value;
   const qCountVal  = document.getElementById('q-count').value;
   timerDuration    = parseInt(document.getElementById('timer-setting').value);
+  const modeInput  = document.querySelector('input[name="quiz-mode"]:checked');
+  quizMode         = modeInput ? modeInput.value : 'all';
 
-  lastConfig = { unitFilter, diffFilter, qCountVal };
+  lastConfig = { unitFilter, diffFilter, qCountVal, quizMode };
+
+  // Remove any leftover "all done" notice
+  const prevMsg = document.getElementById('unique-all-done-msg');
+  if (prevMsg) prevMsg.remove();
 
   let pool = questionBank[currentSubject].filter(q => {
     const unitOk = unitFilter === 'all' || q.unit === unitFilter;
     const diffOk = diffFilter === 'all' || q.diff === diffFilter;
     return unitOk && diffOk;
   });
+
+  // Unique mode: filter out already-attempted questions
+  if (quizMode === 'unique') {
+    const uniquePool = filterUniquePool(currentSubject, pool);
+    if (uniquePool.length === 0) {
+      showAllAttemptedMessage(
+        currentLang === 'hi'
+          ? 'आपने इस विषय के सभी प्रश्न पहले ही हल कर लिए हैं।'
+          : 'You have already attempted all questions in this subject.'
+      );
+      return;
+    }
+    pool = uniquePool;
+  }
 
   // Shuffle
   pool = pool.sort(() => Math.random() - 0.5);
@@ -1572,6 +2234,16 @@ function showResults() {
   stopTimer();
   document.getElementById('progress-fill').style.width = '100%';
 
+  // Persist this quiz attempt in the user's anonymous history
+  recordQuizAttempt(currentSubject, currentQuestions, {
+    correct: correctCount,
+    wrong:   incorrectCount,
+    skipped: skippedCount,
+    score,
+    maxScore
+  });
+  updateHomeCardProgress();
+
   const accuracy = currentQuestions.length > 0
     ? Math.round((correctCount / currentQuestions.length) * 100) : 0;
   const pct = maxScore > 0 ? (score / maxScore) * 100 : 0;
@@ -1633,6 +2305,15 @@ function retakeTest() {
   document.getElementById('unit-filter').value = lastConfig.unitFilter;
   document.getElementById('diff-filter').value = lastConfig.diffFilter;
   document.getElementById('q-count').value = lastConfig.qCountVal;
+  // Restore quiz mode selection
+  if (lastConfig.quizMode) {
+    const modeLabel = document.querySelector(`input[name="quiz-mode"][value="${lastConfig.quizMode}"]`)?.closest('.mode-option');
+    if (modeLabel) {
+      document.querySelectorAll('.mode-option').forEach(o => o.classList.remove('selected'));
+      modeLabel.classList.add('selected');
+      modeLabel.querySelector('input[name="quiz-mode"]').checked = true;
+    }
+  }
   startExam();
 }
 
@@ -1641,6 +2322,28 @@ function retakeTest() {
 // ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   applyLang();
+
+  // Attach stable _id to every question and initialise guest session
+  buildQuestionIds();
+  getGuestId();
+  updateHomeCardProgress();
+
+  // Quiz mode selector interactivity
+  document.querySelectorAll('.mode-option').forEach(opt => {
+    opt.addEventListener('click', function() {
+      document.querySelectorAll('.mode-option').forEach(o => o.classList.remove('selected'));
+      this.classList.add('selected');
+      // Sync the hidden radio button
+      const radio = this.querySelector('input[name="quiz-mode"]');
+      if (radio) radio.checked = true;
+      // Refresh unattempted count in unique mode description
+      updateUniqueModeDesc();
+    });
+  });
+
+  // Keep unique mode description up-to-date when filters change
+  document.getElementById('unit-filter').addEventListener('change', updateUniqueModeDesc);
+  document.getElementById('diff-filter').addEventListener('change', updateUniqueModeDesc);
 });
 </script>
 </body>
