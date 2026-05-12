@@ -804,7 +804,7 @@
         <span id="lang-en" class="active-lang">EN</span>
         <span id="lang-hi">हि</span>
       </div>
-      <button class="btn-secondary" onclick="showProgress()" id="progress-btn" style="padding:8px 16px; font-size:0.85rem; display:flex;">
+      <button class="btn-secondary" onclick="showProgress()" id="progress-btn" style="padding:8px 16px; font-size:0.85rem; display:flex; gap:6px; align-items:center;">
         📊 <span data-en="My Progress" data-hi="मेरी प्रगति">My Progress</span>
       </button>
       <button class="btn-secondary" id="home-btn" onclick="goHome()" style="display:none; padding:8px 16px; font-size:0.85rem;">
@@ -1541,7 +1541,7 @@ const STORAGE_GUEST_KEY    = 'majmc_guestId';
 const STORAGE_PROGRESS_KEY = 'majmc_progress';
 
 // ── Subject colours for dashboard ──
-const SUBJ_COLORS = {
+const DEFAULT_SUBJECT_ICON = '📚'; // Fallback icon for unknown subjects
   radio:  { fill: 'linear-gradient(90deg,var(--accent),#818cf8)',   accent: 'var(--accent)' },
   ict:    { fill: 'linear-gradient(90deg,var(--emerald),#34d399)',  accent: 'var(--emerald)' },
   dev:    { fill: 'linear-gradient(90deg,var(--gold),#fbbf24)',     accent: 'var(--gold)' },
@@ -1596,9 +1596,9 @@ function getUserProgress() {
 
 // ── Stable question ID using djb2 hash of question text ──
 function hashQuestion(q) {
-  let h = 5381;
-  for (let i = 0; i < q.q.length; i++) { h = ((h << 5) + h) ^ q.q.charCodeAt(i); h |= 0; }
-  return Math.abs(h).toString(36);
+  let hash = 5381;
+  for (let i = 0; i < q.q.length; i++) { hash = ((hash << 5) + hash) ^ q.q.charCodeAt(i); hash |= 0; }
+  return Math.abs(hash).toString(36);
 }
 
 /** Attach stable _id to every question in the bank at startup */
@@ -1609,13 +1609,15 @@ function buildQuestionIds() {
 }
 
 // ── Streak helper ──
+const MS_PER_DAY = 86400000; // milliseconds in one day
+
 function updateStreak(p) {
   const today = new Date().toISOString().split('T')[0];
   const last  = p.streak.lastActiveDate;
   if (!last) {
     p.streak.current = 1; p.streak.lastActiveDate = today;
   } else if (last !== today) {
-    const diff = Math.round((new Date(today) - new Date(last)) / 86400000);
+    const diff = Math.round((new Date(today) - new Date(last)) / MS_PER_DAY);
     p.streak.current = diff === 1 ? p.streak.current + 1 : 1;
     p.streak.lastActiveDate = today;
   }
@@ -1680,6 +1682,12 @@ function timeAgo(iso) {
   const mins  = Math.floor(diff / 60000);
   const hours = Math.floor(mins / 60);
   const days  = Math.floor(hours / 24);
+  if (currentLang === 'hi') {
+    if (days > 0)  return days === 1 ? 'कल' : `${days} दिन पहले`;
+    if (hours > 0) return `${hours} घंटे पहले`;
+    if (mins > 0)  return `${mins} मिनट पहले`;
+    return 'अभी';
+  }
   if (days > 0)  return days === 1 ? 'Yesterday' : `${days} days ago`;
   if (hours > 0) return `${hours}h ago`;
   if (mins > 0)  return `${mins}m ago`;
@@ -1847,14 +1855,17 @@ function renderProgressDashboard() {
   actEl.innerHTML = '';
   const recent = p.recentActivity.slice(0, 8);
   if (recent.length === 0) {
-    actEl.innerHTML = '<p style="color:var(--text-muted); font-size:0.88rem; text-align:center; padding:20px 0;">No activity yet. Start a quiz to see your history here!</p>';
+    const emptyMsg = currentLang === 'hi'
+      ? 'अभी तक कोई गतिविधि नहीं। अपना इतिहास देखने के लिए एक क्विज़ शुरू करें!'
+      : 'No activity yet. Start a quiz to see your history here!';
+    actEl.innerHTML = `<p style="color:var(--text-muted); font-size:0.88rem; text-align:center; padding:20px 0;">${emptyMsg}</p>`;
   } else {
     recent.forEach(act => {
       const meta = subjectMeta[act.subject];
       const div  = document.createElement('div');
       div.className = 'activity-item';
       div.innerHTML = `
-        <span style="font-size:1.4rem;">${meta?.icon || '📚'}</span>
+        <span style="font-size:1.4rem;">${meta?.icon || DEFAULT_SUBJECT_ICON}</span>
         <div style="flex:1; min-width:0;">
           <div style="font-size:0.88rem; font-weight:600;">${meta?.name[currentLang] || act.subject}</div>
           <div style="font-size:0.78rem; color:var(--text-muted);">${act.questionsCount} Qs · ${act.correct}✅ ${act.wrong}❌ ${act.skipped}⏭</div>
