@@ -2,7 +2,7 @@
 
 A modern, bilingual mock test platform for **Master of Arts in Journalism & Mass Communication (MAJMC)** — Semester II, 2025–26.
 
-🔗 **Live Site:** [https://YOUR-USERNAME.github.io/majmc-mock-test/](https://YOUR-USERNAME.github.io/majmc-mock-test/)
+🔗 **Live Site:** [https://niksheydhiman-musician.github.io/majmc_mock_test/](https://niksheydhiman-musician.github.io/majmc_mock_test/)
 
 ---
 
