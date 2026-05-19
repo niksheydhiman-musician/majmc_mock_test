@@ -1649,7 +1649,10 @@ function canonicalQuestionKey(text) {
 
 function romanToNumber(value) {
   const roman = String(value || '').trim().toUpperCase();
-  if (!roman || /[^IVXLCDM]/.test(roman)) return 0;
+  if (!roman || /[^IVXLCDM]/.test(roman)) {
+    if (roman) console.warn(`Invalid Roman numeral in unit name: "${value}"`);
+    return 0;
+  }
   const numerals = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
   let total = 0;
   let prev = 0;
@@ -1692,7 +1695,7 @@ function normalizeOptionText(value) {
 function normalizeOptions(values) {
   const rawOptions = Array.isArray(values) ? values : [values];
   const combined = rawOptions.map(value => String(value || '').trim()).join(' ');
-  // Split combined strings back into options when malformed JSON stores "C)... D)..." together.
+  // Split malformed combined options back out when JSON stores entries like "C)... D)..." in one string.
   const splitOptions = combined
     .split(/(?:(?<=^)|(?<=\s))(?=[A-Da-d][\.\)]\s*)/)
     .map(normalizeOptionText)
@@ -1747,7 +1750,7 @@ async function ensureFullQuestionBankLoaded() {
           const data = await response.json();
           fullQuestionBank[subject] = normalizeJsonSubjectQuestions(data);
         } catch (error) {
-          console.warn(`Could not load ${file} for ${subject}; using inline questions instead, so fewer questions may be available (${error?.message || error}).`);
+          console.warn(`Could not load ${file} for ${subject}; using inline questions instead, so fewer questions may be available (${error?.message || String(error)}).`);
           fullQuestionBank[subject] = mergeQuestionSets(questionBank[subject] || [], []);
         }
       })
@@ -1768,7 +1771,7 @@ function getSubjectQuestions(subject, useFullBank = false) {
 function getSubjectQuestionTotal(subject) {
   const total = getSubjectQuestions(subject, true).length;
   if (total === 0) {
-    console.warn(`No questions found for subject "${subject}".`);
+    console.warn(`No questions found for subject "${subject}" in either the JSON bank or inline bank.`);
     return 0;
   }
   return total;

@@ -54,6 +54,7 @@ The site is built with HTML, Tailwind CSS via CDN, and vanilla JavaScript, with 
 No installation is required for the main interface. Open `index.html` in any browser.
 
 > Note: the **All Questions** option reads the subject JSON files, so serving the folder through a simple local web server is recommended for full subject-bank loading.
+> Browsers usually block JSON file requests from a direct `file://` open, so the local server avoids that restriction.
 
 ```
 python3 -m http.server 8000
