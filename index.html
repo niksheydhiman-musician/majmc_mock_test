@@ -1497,6 +1497,14 @@ const subjectMeta = {
 const diffMarks = { easy: 1, moderate: 5, hard: 10 };
 const diffLabels = { easy: { en: "Easy · 1 mark", hi: "आसान · 1 अंक" }, moderate: { en: "Moderate · 5 marks", hi: "मध्यम · 5 अंक" }, hard: { en: "Hard · 10 marks", hi: "कठिन · 10 अंक" } };
 const diffColors = { easy: "var(--emerald)", moderate: "var(--gold)", hard: "var(--ruby)" };
+const subjectJsonFiles = {
+  radio: 'radio.json',
+  ict: 'information_communication_technology.json',
+  dev: 'dev_international_comm.json',
+  iconic: 'iconic_personalities.json'
+};
+const fullQuestionBank = {};
+let fullQuestionBankPromise = null;
 
 // ═══════════════════════════════════════════════
 //  LANGUAGE
@@ -1612,6 +1620,117 @@ function buildQuestionIds() {
   );
 }
 
+function canonicalQuestionKey(text) {
+  return String(text || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function romanToNumber(value) {
+  const numerals = { I: 1, V: 5, X: 10, L: 50, C: 100 };
+  let total = 0;
+  let prev = 0;
+  const chars = String(value || '').toUpperCase().split('').reverse();
+  chars.forEach(char => {
+    const current = numerals[char] || 0;
+    total += current < prev ? -current : current;
+    prev = current;
+  });
+  return total;
+}
+
+function normalizeUnitName(unitName) {
+  const text = String(unitName || '').trim();
+  const numericMatch = text.match(/Unit\s*(\d+)/i);
+  if (numericMatch) return `Unit ${numericMatch[1]}`;
+  const romanMatch = text.match(/Unit\s*([IVXLC]+)/i);
+  if (romanMatch) {
+    const unitNumber = romanToNumber(romanMatch[1]);
+    if (unitNumber > 0) return `Unit ${unitNumber}`;
+  }
+  return text || 'Unit 1';
+}
+
+function normalizeDifficulty(value) {
+  const key = String(value || '').trim().toLowerCase();
+  return ({ easy: 'easy', moderate: 'moderate', medium: 'moderate', hard: 'hard', high: 'hard' })[key] || 'moderate';
+}
+
+function normalizeAnswerIndex(value) {
+  const answer = String(value || '').trim().toUpperCase();
+  const letter = answer.match(/[ABCD]/)?.[0];
+  return letter ? ['A', 'B', 'C', 'D'].indexOf(letter) : 0;
+}
+
+function normalizeOptionText(value) {
+  return String(value || '').trim().replace(/^[A-Da-d][\.\)]\s*/, '');
+}
+
+function mergeQuestionSets(primaryQuestions, secondaryQuestions) {
+  const merged = [];
+  const seen = new Set();
+
+  [...primaryQuestions, ...secondaryQuestions].forEach(question => {
+    const key = canonicalQuestionKey(question.q);
+    if (!key || seen.has(key)) return;
+    const normalized = { ...question };
+    if (!normalized._id) normalized._id = hashQuestion(normalized);
+    merged.push(normalized);
+    seen.add(key);
+  });
+
+  return merged;
+}
+
+function normalizeJsonSubjectQuestions(data) {
+  return Object.entries(data.units || {}).flatMap(([unitName, questions]) =>
+    (questions || []).map(question => {
+      const normalized = {
+        q: String(question.question || '').trim(),
+        opts: (question.options || []).slice(0, 4).map(normalizeOptionText),
+        ans: normalizeAnswerIndex(question.answer),
+        diff: normalizeDifficulty(question.difficulty),
+        unit: normalizeUnitName(unitName)
+      };
+      normalized._id = hashQuestion(normalized);
+      return normalized;
+    })
+  ).filter(question => question.q && question.opts.length === 4);
+}
+
+async function ensureFullQuestionBankLoaded() {
+  if (!fullQuestionBankPromise) {
+    fullQuestionBankPromise = Promise.all(
+      Object.entries(subjectJsonFiles).map(async ([subject, file]) => {
+        try {
+          const response = await fetch(file);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          fullQuestionBank[subject] = mergeQuestionSets(
+            questionBank[subject] || [],
+            normalizeJsonSubjectQuestions(data)
+          );
+        } catch (error) {
+          console.warn(`Could not load ${file}; using inline questions for ${subject}.`, error);
+          fullQuestionBank[subject] = mergeQuestionSets(questionBank[subject] || [], []);
+        }
+      })
+    );
+  }
+
+  await fullQuestionBankPromise;
+  return fullQuestionBank;
+}
+
+function getSubjectQuestions(subject, useFullBank = false) {
+  const bank = useFullBank && fullQuestionBank[subject]?.length
+    ? fullQuestionBank[subject]
+    : questionBank[subject];
+  return bank || [];
+}
+
+function getSubjectQuestionTotal(subject) {
+  return getSubjectQuestions(subject, true).length || 1;
+}
+
 function shuffleInPlace(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -1724,7 +1843,7 @@ function updateHomeCardProgress() {
     const el = document.getElementById(`home-prog-${key}`);
     if (!el) return;
     const s        = p.subjects[key] || createEmptySubjectProgress();
-    const total    = questionBank[key]?.length || 1;
+    const total    = getSubjectQuestionTotal(key);
     const attempted = s.attemptedQuestions?.length || 0;
     const pct      = Math.round((attempted / total) * 100);
     el.querySelector('.card-mini-fill').style.width = pct + '%';
@@ -1757,7 +1876,8 @@ function updateUniqueModeDesc() {
   if (!currentSubject) return;
   const unitFilter = document.getElementById('unit-filter').value;
   const diffFilter = document.getElementById('diff-filter').value;
-  let pool = questionBank[currentSubject].filter(q => {
+  const useFullBank = document.getElementById('q-count').value === 'all';
+  let pool = getSubjectQuestions(currentSubject, useFullBank).filter(q => {
     const unitOk = unitFilter === 'all' || q.unit === unitFilter;
     const diffOk = diffFilter === 'all' || q.diff === diffFilter;
     return unitOk && diffOk;
@@ -1786,7 +1906,7 @@ function renderProgressDashboard() {
   const overallTotal    = totalCorrect + totalWrong + totalSkipped;
   const overallAccuracy = overallTotal > 0 ? Math.round((totalCorrect / overallTotal) * 100) : 0;
 
-  const totalInBank = Object.keys(questionBank).reduce((acc, k) => acc + questionBank[k].length, 0);
+  const totalInBank = Object.keys(questionBank).reduce((acc, k) => acc + getSubjectQuestionTotal(k), 0);
   const completionPct = totalInBank > 0 ? Math.round((totalAttempted / totalInBank) * 100) : 0;
 
   // Header info
@@ -1824,7 +1944,7 @@ function renderProgressDashboard() {
     const s     = p.subjects[key] || createEmptySubjectProgress();
     const meta  = subjectMeta[key];
     const clr   = SUBJ_COLORS[key];
-    const total = questionBank[key]?.length || 1;
+    const total = getSubjectQuestionTotal(key);
     const att   = s.attemptedQuestions?.length || 0;
     const pct   = Math.round((att / total) * 100);
     const acc   = s.accuracy || 0;
@@ -1998,7 +2118,7 @@ function selectSubject(subject) {
   }[subject][currentLang];
 
   // Populate unit filter
-  const unitSet = new Set(questionBank[subject].map(q => q.unit));
+  const unitSet = new Set(getSubjectQuestions(subject, true).map(q => q.unit));
   const unitFilter = document.getElementById('unit-filter');
   unitFilter.innerHTML = `<option value="all" data-en="All Units" data-hi="सभी यूनिट">${currentLang === 'hi' ? 'सभी यूनिट' : 'All Units'}</option>`;
   [...unitSet].sort().forEach(u => {
@@ -2018,14 +2138,18 @@ function selectSubject(subject) {
 // ═══════════════════════════════════════════════
 //  START EXAM
 // ═══════════════════════════════════════════════
-function startExam() {
+async function startExam() {
   const unitFilter = document.getElementById('unit-filter').value;
   const diffFilter = document.getElementById('diff-filter').value;
   const qCountVal  = document.getElementById('q-count').value;
   timerDuration    = parseInt(document.getElementById('timer-setting').value);
   const modeInput  = document.querySelector('input[name="quiz-mode"]:checked');
   quizMode         = modeInput ? modeInput.value : 'all';
-  currentExamIsAllSubjects = qCountVal === 'all';
+  const useFullSubjectBank = qCountVal === 'all';
+  if (useFullSubjectBank) {
+    await ensureFullQuestionBankLoaded();
+  }
+  currentExamIsAllSubjects = false;
 
   lastConfig = { unitFilter, diffFilter, qCountVal, quizMode };
 
@@ -2033,11 +2157,8 @@ function startExam() {
   const prevMsg = document.getElementById('unique-all-done-msg');
   if (prevMsg) prevMsg.remove();
 
-  const sourcePool = currentExamIsAllSubjects
-    ? Object.keys(questionBank).flatMap(subject =>
-        questionBank[subject].map(q => ({ ...q, __subject: subject }))
-      )
-    : questionBank[currentSubject].map(q => ({ ...q, __subject: currentSubject }));
+  const sourcePool = getSubjectQuestions(currentSubject, useFullSubjectBank)
+    .map(q => ({ ...q, __subject: currentSubject }));
 
   let pool = sourcePool.filter(q => {
     const unitOk = unitFilter === 'all' || q.unit === unitFilter;
@@ -2048,28 +2169,15 @@ function startExam() {
   // Unique mode: filter out already-attempted questions
   if (quizMode === 'unique') {
     let uniquePool = [];
-    if (currentExamIsAllSubjects) {
-      const p = getUserProgress();
-      const seenBySubject = {};
-      Object.keys(subjectMeta).forEach(subject => {
-        seenBySubject[subject] = new Set(p.subjects[subject]?.attemptedQuestions || []);
-      });
-      uniquePool = pool.filter(q => q._id && !seenBySubject[q.__subject]?.has(q._id));
-    } else {
       uniquePool = filterUniquePool(currentSubject, pool);
-    }
-    if (uniquePool.length === 0) {
-      showAllAttemptedMessage(
-        currentLang === 'hi'
-          ? (currentExamIsAllSubjects
-              ? 'आपने सभी विषयों के सभी प्रश्न पहले ही हल कर लिए हैं।'
-              : 'आपने इस विषय के सभी प्रश्न पहले ही हल कर लिए हैं।')
-          : (currentExamIsAllSubjects
-              ? 'You have already attempted all questions across all subjects.'
-              : 'You have already attempted all questions in this subject.')
-      );
-      return;
-    }
+      if (uniquePool.length === 0) {
+        showAllAttemptedMessage(
+          currentLang === 'hi'
+            ? 'आपने इस विषय के सभी प्रश्न पहले ही हल कर लिए हैं।'
+            : 'You have already attempted all questions in this subject.'
+        );
+        return;
+      }
     pool = uniquePool;
   }
 
@@ -2094,9 +2202,7 @@ function startExam() {
   skippedCount = 0;
   wrongAnswers = [];
   questionOutcomes = [];
-  currentExamTitle = currentExamIsAllSubjects
-    ? (currentLang === 'hi' ? 'सभी विषय' : 'All Subjects')
-    : subjectMeta[currentSubject].name[currentLang];
+  currentExamTitle = subjectMeta[currentSubject].name[currentLang];
 
   document.getElementById('exam-subject-name').textContent = currentExamTitle;
   document.getElementById('nav-title').textContent = currentExamTitle;
@@ -2450,6 +2556,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Keep unique mode description up-to-date when filters change
   document.getElementById('unit-filter').addEventListener('change', updateUniqueModeDesc);
   document.getElementById('diff-filter').addEventListener('change', updateUniqueModeDesc);
+  document.getElementById('q-count').addEventListener('change', updateUniqueModeDesc);
+
+  ensureFullQuestionBankLoaded().then(() => {
+    updateHomeCardProgress();
+    if (currentSubject) {
+      updateUniqueModeDesc();
+    }
+  });
 });
 </script>
 </body>
