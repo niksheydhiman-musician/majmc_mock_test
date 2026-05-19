@@ -1511,7 +1511,7 @@ let questionOutcomes = [];
 let retryChanceUsed = false;
 let retryRoundActive = false;
 let baseAttemptSnapshot = null;
-const RETRY_PROMPT_DELAY_MS = 180;
+const RETRY_PROMPT_DELAY_MS = 1200;
 
 // Subject meta
 const subjectMeta = {
@@ -2528,7 +2528,7 @@ function showResults() {
     displayScore = baseAttemptSnapshot.score + score;
     displayMaxScore = baseAttemptSnapshot.maxScore;
     displayCorrect = baseAttemptSnapshot.correctCount + correctCount;
-    displayIncorrect = Math.max(0, baseAttemptSnapshot.wrongAnswers.length - correctCount - skippedCount);
+    displayIncorrect = incorrectCount;
     displaySkipped = skippedCount;
     displayAccuracy = baseAttemptSnapshot.totalQuestions > 0
       ? Math.round((displayCorrect / baseAttemptSnapshot.totalQuestions) * 100)
@@ -2537,8 +2537,9 @@ function showResults() {
 
   const pct = displayMaxScore > 0 ? (displayScore / displayMaxScore) * 100 : 0;
 
+  const finalResultTitle = baseAttemptSnapshot?.examTitle || currentExamTitle;
   document.getElementById('results-subject-name').textContent = wasRetryRound
-    ? (currentLang === 'hi' ? `${baseAttemptSnapshot?.examTitle || currentExamTitle} · अंतिम परिणाम` : `${baseAttemptSnapshot?.examTitle || currentExamTitle} · Final Result`)
+    ? (currentLang === 'hi' ? `${finalResultTitle} · अंतिम परिणाम` : `${finalResultTitle} · Final Result`)
     : currentExamTitle;
   document.getElementById('final-score').textContent = displayScore;
   document.getElementById('max-score').textContent = '/ ' + displayMaxScore;
