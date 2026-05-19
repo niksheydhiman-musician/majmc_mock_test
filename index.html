@@ -1506,7 +1506,6 @@ let timeLeft = 45;
 let wrongAnswers = [];
 let lastConfig = {};
 let quizMode = 'all'; // 'all' | 'unique'
-let currentExamIsAllSubjects = false;
 let currentExamTitle = '';
 let questionOutcomes = [];
 
@@ -1649,10 +1648,12 @@ function canonicalQuestionKey(text) {
 }
 
 function romanToNumber(value) {
+  const roman = String(value || '').trim().toUpperCase();
+  if (!roman || /[^IVXLC]/.test(roman)) return 0;
   const numerals = { I: 1, V: 5, X: 10, L: 50, C: 100 };
   let total = 0;
   let prev = 0;
-  const chars = String(value || '').toUpperCase().split('').reverse();
+  const chars = roman.split('').reverse();
   chars.forEach(char => {
     const current = numerals[char] || 0;
     total += current < prev ? -current : current;
@@ -1688,6 +1689,21 @@ function normalizeOptionText(value) {
   return String(value || '').trim().replace(/^[A-Da-d][\.\)]\s*/, '');
 }
 
+function normalizeOptions(values) {
+  const rawOptions = Array.isArray(values) ? values : [values];
+  const combined = rawOptions.map(value => String(value || '').trim()).join(' ');
+  const splitOptions = combined
+    .split(/(?:(?<=^)|(?<=\s))(?=[A-Da-d][\.\)]\s*)/)
+    .map(normalizeOptionText)
+    .filter(Boolean);
+
+  if (splitOptions.length >= 4) {
+    return splitOptions.slice(0, 4);
+  }
+
+  return rawOptions.map(normalizeOptionText).filter(Boolean).slice(0, 4);
+}
+
 function mergeQuestionSets(primaryQuestions, secondaryQuestions) {
   const merged = [];
   const seen = new Set();
@@ -1708,8 +1724,8 @@ function normalizeJsonSubjectQuestions(data) {
   return Object.entries(data.units || {}).flatMap(([unitName, questions]) =>
     (questions || []).map(question => {
       const normalized = {
-        q: String(question.question || '').trim(),
-        opts: (question.options || []).slice(0, 4).map(normalizeOptionText),
+        q: String(question.question || question['question body'] || '').trim(),
+        opts: normalizeOptions(question.options || []),
         ans: normalizeAnswerIndex(question.answer),
         diff: normalizeDifficulty(question.difficulty),
         unit: normalizeUnitName(unitName)
@@ -1730,7 +1746,7 @@ async function ensureFullQuestionBankLoaded() {
           const data = await response.json();
           fullQuestionBank[subject] = normalizeJsonSubjectQuestions(data);
         } catch (error) {
-          console.warn(`Could not load ${file}; using inline questions for ${subject}.`, error);
+          console.warn(`Could not load ${file} for ${subject}; using inline questions instead (${error?.message || error}).`);
           fullQuestionBank[subject] = mergeQuestionSets(questionBank[subject] || [], []);
         }
       })
@@ -1749,7 +1765,12 @@ function getSubjectQuestions(subject, useFullBank = false) {
 }
 
 function getSubjectQuestionTotal(subject) {
-  return getSubjectQuestions(subject, true).length || 1;
+  const total = getSubjectQuestions(subject, true).length;
+  if (total === 0) {
+    console.warn(`No questions found for subject "${subject}".`);
+    return 1;
+  }
+  return total;
 }
 
 function shuffleInPlace(arr) {
@@ -2170,7 +2191,6 @@ async function startExam() {
   if (useFullSubjectBank) {
     await ensureFullQuestionBankLoaded();
   }
-  currentExamIsAllSubjects = false;
 
   lastConfig = { unitFilter, diffFilter, qCountVal, quizMode };
 
@@ -2423,58 +2443,13 @@ function showResults() {
   document.getElementById('progress-fill').style.width = '100%';
 
   // Persist this quiz attempt in the user's anonymous history
-  if (currentExamIsAllSubjects) {
-    const subjects = {};
-    Object.keys(subjectMeta).forEach(subject => {
-      subjects[subject] = {
-        questions: [],
-        correct: 0,
-        wrong: 0,
-        skipped: 0,
-        score: 0,
-        maxScore: 0
-      };
-    });
-
-    currentQuestions.forEach(q => {
-      const subject = q.__subject || currentSubject;
-      if (!subjects[subject]) return;
-      subjects[subject].questions.push(q);
-      subjects[subject].maxScore += diffMarks[q.diff];
-    });
-
-    questionOutcomes.forEach(({ subject, q, outcome }) => {
-      if (!subjects[subject]) return;
-      if (outcome === 'correct') {
-        subjects[subject].correct++;
-        subjects[subject].score += diffMarks[q.diff];
-      } else if (outcome === 'wrong') {
-        subjects[subject].wrong++;
-      } else if (outcome === 'skipped') {
-        subjects[subject].skipped++;
-      }
-    });
-
-    Object.keys(subjects).forEach(subject => {
-      const s = subjects[subject];
-      if (s.questions.length === 0) return;
-      recordQuizAttempt(subject, s.questions, {
-        correct: s.correct,
-        wrong: s.wrong,
-        skipped: s.skipped,
-        score: s.score,
-        maxScore: s.maxScore
-      });
-    });
-  } else {
-    recordQuizAttempt(currentSubject, currentQuestions, {
-      correct: correctCount,
-      wrong:   incorrectCount,
-      skipped: skippedCount,
-      score,
-      maxScore
-    });
-  }
+  recordQuizAttempt(currentSubject, currentQuestions, {
+    correct: correctCount,
+    wrong:   incorrectCount,
+    skipped: skippedCount,
+    score,
+    maxScore
+  });
   updateHomeCardProgress();
 
   const accuracy = currentQuestions.length > 0
