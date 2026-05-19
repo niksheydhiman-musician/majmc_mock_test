@@ -1482,6 +1482,9 @@ let timeLeft = 45;
 let wrongAnswers = [];
 let lastConfig = {};
 let quizMode = 'all'; // 'all' | 'unique'
+let currentExamIsAllSubjects = false;
+let currentExamTitle = '';
+let questionOutcomes = [];
 
 // Subject meta
 const subjectMeta = {
@@ -1607,6 +1610,25 @@ function buildQuestionIds() {
   Object.keys(questionBank).forEach(subj =>
     questionBank[subj].forEach(q => { q._id = hashQuestion(q); })
   );
+}
+
+function shuffleInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function cloneQuestionWithShuffledOptions(q) {
+  const order = q.opts.map((_, idx) => idx);
+  shuffleInPlace(order);
+  return {
+    ...q,
+    opts: order.map(i => q.opts[i]),
+    optsHi: Array.isArray(q.optsHi) ? order.map(i => q.optsHi[i] ?? q.opts[i]) : q.optsHi,
+    ans: order.indexOf(q.ans)
+  };
 }
 
 // ── Streak helper ──
@@ -2003,6 +2025,7 @@ function startExam() {
   timerDuration    = parseInt(document.getElementById('timer-setting').value);
   const modeInput  = document.querySelector('input[name="quiz-mode"]:checked');
   quizMode         = modeInput ? modeInput.value : 'all';
+  currentExamIsAllSubjects = qCountVal === 'all';
 
   lastConfig = { unitFilter, diffFilter, qCountVal, quizMode };
 
@@ -2010,7 +2033,13 @@ function startExam() {
   const prevMsg = document.getElementById('unique-all-done-msg');
   if (prevMsg) prevMsg.remove();
 
-  let pool = questionBank[currentSubject].filter(q => {
+  const sourcePool = currentExamIsAllSubjects
+    ? Object.keys(questionBank).flatMap(subject =>
+        questionBank[subject].map(q => ({ ...q, __subject: subject }))
+      )
+    : questionBank[currentSubject].map(q => ({ ...q, __subject: currentSubject }));
+
+  let pool = sourcePool.filter(q => {
     const unitOk = unitFilter === 'all' || q.unit === unitFilter;
     const diffOk = diffFilter === 'all' || q.diff === diffFilter;
     return unitOk && diffOk;
@@ -2018,12 +2047,26 @@ function startExam() {
 
   // Unique mode: filter out already-attempted questions
   if (quizMode === 'unique') {
-    const uniquePool = filterUniquePool(currentSubject, pool);
+    let uniquePool = [];
+    if (currentExamIsAllSubjects) {
+      const p = getUserProgress();
+      const seenBySubject = {};
+      Object.keys(subjectMeta).forEach(subject => {
+        seenBySubject[subject] = new Set(p.subjects[subject]?.attemptedQuestions || []);
+      });
+      uniquePool = pool.filter(q => q._id && !seenBySubject[q.__subject]?.has(q._id));
+    } else {
+      uniquePool = filterUniquePool(currentSubject, pool);
+    }
     if (uniquePool.length === 0) {
       showAllAttemptedMessage(
         currentLang === 'hi'
-          ? 'आपने इस विषय के सभी प्रश्न पहले ही हल कर लिए हैं।'
-          : 'You have already attempted all questions in this subject.'
+          ? (currentExamIsAllSubjects
+              ? 'आपने सभी विषयों के सभी प्रश्न पहले ही हल कर लिए हैं।'
+              : 'आपने इस विषय के सभी प्रश्न पहले ही हल कर लिए हैं।')
+          : (currentExamIsAllSubjects
+              ? 'You have already attempted all questions across all subjects.'
+              : 'You have already attempted all questions in this subject.')
       );
       return;
     }
@@ -2031,7 +2074,7 @@ function startExam() {
   }
 
   // Shuffle
-  pool = pool.sort(() => Math.random() - 0.5);
+  shuffleInPlace(pool);
 
   if (qCountVal !== 'all') {
     pool = pool.slice(0, parseInt(qCountVal));
@@ -2042,7 +2085,7 @@ function startExam() {
     return;
   }
 
-  currentQuestions = pool;
+  currentQuestions = pool.map(cloneQuestionWithShuffledOptions);
   currentQIndex = 0;
   score = 0;
   maxScore = pool.reduce((acc, q) => acc + diffMarks[q.diff], 0);
@@ -2050,9 +2093,13 @@ function startExam() {
   incorrectCount = 0;
   skippedCount = 0;
   wrongAnswers = [];
+  questionOutcomes = [];
+  currentExamTitle = currentExamIsAllSubjects
+    ? (currentLang === 'hi' ? 'सभी विषय' : 'All Subjects')
+    : subjectMeta[currentSubject].name[currentLang];
 
-  document.getElementById('exam-subject-name').textContent = subjectMeta[currentSubject].name[currentLang];
-  document.getElementById('nav-title').textContent = subjectMeta[currentSubject].name[currentLang];
+  document.getElementById('exam-subject-name').textContent = currentExamTitle;
+  document.getElementById('nav-title').textContent = currentExamTitle;
   document.getElementById('live-score').textContent = '0';
 
   showScreen('screen-exam');
@@ -2156,9 +2203,10 @@ function handleTimeUp() {
   if (answered) return;
   answered = true;
   skippedCount++;
+  const q = currentQuestions[currentQIndex];
+  questionOutcomes.push({ subject: q.__subject || currentSubject, q, outcome: 'skipped' });
   document.getElementById('feedback-msg').textContent = t('time_up', {});
   revealAnswers(-1);
-  const q = currentQuestions[currentQIndex];
   wrongAnswers.push({ q, chosen: -1 });
   document.getElementById('next-btn').style.display = 'inline-flex';
   setNextBtnText();
@@ -2185,11 +2233,13 @@ function selectAnswer(chosenIndex) {
     score += marks;
     maxScore = maxScore; // already computed
     correctCount++;
+    questionOutcomes.push({ subject: q.__subject || currentSubject, q, outcome: 'correct' });
     document.getElementById('live-score').textContent = score;
     document.getElementById('feedback-msg').innerHTML = `<span style="color:var(--emerald); font-weight:600;">${t('correct_ans', { marks })}</span>`;
     showTicker(true, `+${marks}`);
   } else {
     incorrectCount++;
+    questionOutcomes.push({ subject: q.__subject || currentSubject, q, outcome: 'wrong' });
     document.getElementById('feedback-msg').innerHTML = `<span style="color:var(--ruby);">${t('wrong_ans', { correct: correctLabel })}</span>`;
     showTicker(false, opts[chosenIndex] ? ['A','B','C','D'][chosenIndex] : '?');
     wrongAnswers.push({ q, chosen: chosenIndex });
@@ -2247,20 +2297,65 @@ function showResults() {
   document.getElementById('progress-fill').style.width = '100%';
 
   // Persist this quiz attempt in the user's anonymous history
-  recordQuizAttempt(currentSubject, currentQuestions, {
-    correct: correctCount,
-    wrong:   incorrectCount,
-    skipped: skippedCount,
-    score,
-    maxScore
-  });
+  if (currentExamIsAllSubjects) {
+    const subjects = {};
+    Object.keys(subjectMeta).forEach(subject => {
+      subjects[subject] = {
+        questions: [],
+        correct: 0,
+        wrong: 0,
+        skipped: 0,
+        score: 0,
+        maxScore: 0
+      };
+    });
+
+    currentQuestions.forEach(q => {
+      const subject = q.__subject || currentSubject;
+      if (!subjects[subject]) return;
+      subjects[subject].questions.push(q);
+      subjects[subject].maxScore += diffMarks[q.diff];
+    });
+
+    questionOutcomes.forEach(({ subject, q, outcome }) => {
+      if (!subjects[subject]) return;
+      if (outcome === 'correct') {
+        subjects[subject].correct++;
+        subjects[subject].score += diffMarks[q.diff];
+      } else if (outcome === 'wrong') {
+        subjects[subject].wrong++;
+      } else if (outcome === 'skipped') {
+        subjects[subject].skipped++;
+      }
+    });
+
+    Object.keys(subjects).forEach(subject => {
+      const s = subjects[subject];
+      if (s.questions.length === 0) return;
+      recordQuizAttempt(subject, s.questions, {
+        correct: s.correct,
+        wrong: s.wrong,
+        skipped: s.skipped,
+        score: s.score,
+        maxScore: s.maxScore
+      });
+    });
+  } else {
+    recordQuizAttempt(currentSubject, currentQuestions, {
+      correct: correctCount,
+      wrong:   incorrectCount,
+      skipped: skippedCount,
+      score,
+      maxScore
+    });
+  }
   updateHomeCardProgress();
 
   const accuracy = currentQuestions.length > 0
     ? Math.round((correctCount / currentQuestions.length) * 100) : 0;
   const pct = maxScore > 0 ? (score / maxScore) * 100 : 0;
 
-  document.getElementById('results-subject-name').textContent = subjectMeta[currentSubject].name[currentLang];
+  document.getElementById('results-subject-name').textContent = currentExamTitle || subjectMeta[currentSubject].name[currentLang];
   document.getElementById('final-score').textContent = score;
   document.getElementById('max-score').textContent = '/ ' + maxScore;
   document.getElementById('res-correct').textContent = correctCount;
