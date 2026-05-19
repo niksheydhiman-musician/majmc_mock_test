@@ -839,15 +839,15 @@
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:18px;">
       <div style="padding:18px; border-radius:16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
         <div style="font-weight:700; margin-bottom:8px;" data-en="What it offers" data-hi="यह क्या देता है">What it offers</div>
-        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.7; margin:0;">Tiered scoring, bilingual support, timer controls, unit and difficulty filters, retakes, and a personal progress dashboard.</p>
+        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.7; margin:0;" data-en="Tiered scoring, bilingual support, timer controls, unit and difficulty filters, retakes, and a personal progress dashboard." data-hi="Tiered scoring, bilingual support, timer controls, unit और difficulty filters, retakes, और personal progress dashboard शामिल हैं।">Tiered scoring, bilingual support, timer controls, unit and difficulty filters, retakes, and a personal progress dashboard.</p>
       </div>
       <div style="padding:18px; border-radius:16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
         <div style="font-weight:700; margin-bottom:8px;" data-en="How questions work" data-hi="प्रश्न कैसे काम करते हैं">How questions work</div>
-        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.7; margin:0;">Quick practice means choosing a fixed question count like 10, 20, 30, or 50 from the built-in question bank, while the “All Questions” option loads the complete JSON bank for the selected subject only.</p>
+        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.7; margin:0;" data-en="Quick practice means choosing a fixed question count like 10, 20, 30, or 50 from the built-in question bank, while the “All Questions” option loads the complete JSON bank for the selected subject only." data-hi="Quick practice का मतलब built-in question bank से 10, 20, 30 या 50 जैसे fixed question count चुनना है, जबकि “All Questions” विकल्प केवल selected subject का पूरा JSON bank लोड करता है।">Quick practice means choosing a fixed question count like 10, 20, 30, or 50 from the built-in question bank, while the “All Questions” option loads the complete JSON bank for the selected subject only.</p>
       </div>
       <div style="padding:18px; border-radius:16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
         <div style="font-weight:700; margin-bottom:8px;" data-en="How to use it" data-hi="इसे कैसे उपयोग करें">How to use it</div>
-        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.7; margin:0;">Choose a subject, apply filters, decide the number of questions, and start practicing instantly in the browser.</p>
+        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.7; margin:0;" data-en="Choose a subject, apply filters, decide the number of questions, and start practicing instantly in the browser." data-hi="एक subject चुनें, filters apply करें, questions की संख्या तय करें, और browser में तुरंत practice शुरू करें।">Choose a subject, apply filters, decide the number of questions, and start practicing instantly in the browser.</p>
       </div>
     </div>
     <p style="color:var(--text-muted); font-size:0.88rem; line-height:1.7; margin:0;" data-en="The site is built with HTML, Tailwind CSS via CDN, and vanilla JavaScript, and it now includes dedicated JSON files per subject so complete subject banks can be loaded when needed." data-hi="यह साइट HTML, Tailwind CSS via CDN और vanilla JavaScript से बनी है, और अब इसमें प्रत्येक subject के लिए dedicated JSON files शामिल हैं ताकि ज़रूरत पड़ने पर पूरा subject bank लोड किया जा सके।">The site is built with HTML, Tailwind CSS via CDN, and vanilla JavaScript, and it now includes dedicated JSON files per subject so complete subject banks can be loaded when needed.</p>
@@ -1650,7 +1650,7 @@ function canonicalQuestionKey(text) {
 function romanToNumber(value) {
   const roman = String(value || '').trim().toUpperCase();
   if (!roman || /[^IVXLCDM]/.test(roman)) {
-    if (roman) console.warn(`Invalid Roman numeral in unit name: "${value}"`);
+    if (roman) console.warn(`Invalid Roman numeral in unit name: "${value}" - defaulting to 0.`);
     return 0;
   }
   const numerals = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
@@ -1750,7 +1750,7 @@ async function ensureFullQuestionBankLoaded() {
           const data = await response.json();
           fullQuestionBank[subject] = normalizeJsonSubjectQuestions(data);
         } catch (error) {
-          console.warn(`Could not load ${file} for ${subject}; using inline questions instead, so fewer questions may be available (${error?.message || String(error)}).`);
+          console.warn(`Failed to load ${file} for ${subject}: ${error?.message || String(error)}. Falling back to inline questions; reduced question count expected.`);
           fullQuestionBank[subject] = mergeQuestionSets(questionBank[subject] || [], []);
         }
       })
@@ -1771,7 +1771,7 @@ function getSubjectQuestions(subject, useFullBank = false) {
 function getSubjectQuestionTotal(subject) {
   const total = getSubjectQuestions(subject, true).length;
   if (total === 0) {
-    console.warn(`No questions found for subject "${subject}" in either the JSON bank or inline bank.`);
+    console.warn(`No questions found for subject "${subject}" in either the JSON bank or inline bank - subject will be unavailable.`);
     return 0;
   }
   return total;
