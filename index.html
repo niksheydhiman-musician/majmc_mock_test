@@ -2231,7 +2231,6 @@ function selectAnswer(chosenIndex) {
 
   if (isCorrect) {
     score += marks;
-    maxScore = maxScore; // already computed
     correctCount++;
     questionOutcomes.push({ subject: q.__subject || currentSubject, q, outcome: 'correct' });
     document.getElementById('live-score').textContent = score;
@@ -2355,7 +2354,7 @@ function showResults() {
     ? Math.round((correctCount / currentQuestions.length) * 100) : 0;
   const pct = maxScore > 0 ? (score / maxScore) * 100 : 0;
 
-  document.getElementById('results-subject-name').textContent = currentExamTitle || subjectMeta[currentSubject].name[currentLang];
+  document.getElementById('results-subject-name').textContent = currentExamTitle ?? subjectMeta[currentSubject].name[currentLang];
   document.getElementById('final-score').textContent = score;
   document.getElementById('max-score').textContent = '/ ' + maxScore;
   document.getElementById('res-correct').textContent = correctCount;
