@@ -1511,6 +1511,7 @@ let questionOutcomes = [];
 let retryChanceUsed = false;
 let retryRoundActive = false;
 let baseAttemptSnapshot = null;
+const RETRY_PROMPT_DELAY_MS = 180;
 
 // Subject meta
 const subjectMeta = {
@@ -2527,7 +2528,7 @@ function showResults() {
     displayScore = baseAttemptSnapshot.score + score;
     displayMaxScore = baseAttemptSnapshot.maxScore;
     displayCorrect = baseAttemptSnapshot.correctCount + correctCount;
-    displayIncorrect = incorrectCount;
+    displayIncorrect = Math.max(0, baseAttemptSnapshot.wrongAnswers.length - correctCount - skippedCount);
     displaySkipped = skippedCount;
     displayAccuracy = baseAttemptSnapshot.totalQuestions > 0
       ? Math.round((displayCorrect / baseAttemptSnapshot.totalQuestions) * 100)
@@ -2589,7 +2590,7 @@ function showResults() {
 
   showScreen('screen-results');
   if (!wasRetryRound && wrongAnswers.length > 0 && !retryChanceUsed) {
-    setTimeout(offerIncorrectRetryChance, 180);
+    setTimeout(offerIncorrectRetryChance, RETRY_PROMPT_DELAY_MS);
   }
   if (wasRetryRound) {
     retryRoundActive = false;
