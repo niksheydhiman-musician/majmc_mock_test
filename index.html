@@ -843,7 +843,7 @@
       </div>
       <div style="padding:18px; border-radius:16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
         <div style="font-weight:700; margin-bottom:8px;" data-en="How questions work" data-hi="प्रश्न कैसे काम करते हैं">How questions work</div>
-        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.7; margin:0;">Quick practice uses the built-in question bank, while the “All Questions” option loads the complete JSON bank for the selected subject only.</p>
+        <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.7; margin:0;">Quick practice means choosing a fixed question count like 10, 20, 30, or 50 from the built-in question bank, while the “All Questions” option loads the complete JSON bank for the selected subject only.</p>
       </div>
       <div style="padding:18px; border-radius:16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);">
         <div style="font-weight:700; margin-bottom:8px;" data-en="How to use it" data-hi="इसे कैसे उपयोग करें">How to use it</div>
@@ -1649,8 +1649,8 @@ function canonicalQuestionKey(text) {
 
 function romanToNumber(value) {
   const roman = String(value || '').trim().toUpperCase();
-  if (!roman || /[^IVXLC]/.test(roman)) return 0;
-  const numerals = { I: 1, V: 5, X: 10, L: 50, C: 100 };
+  if (!roman || /[^IVXLCDM]/.test(roman)) return 0;
+  const numerals = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
   let total = 0;
   let prev = 0;
   const chars = roman.split('').reverse();
@@ -1692,6 +1692,7 @@ function normalizeOptionText(value) {
 function normalizeOptions(values) {
   const rawOptions = Array.isArray(values) ? values : [values];
   const combined = rawOptions.map(value => String(value || '').trim()).join(' ');
+  // Split combined strings back into options when malformed JSON stores "C)... D)..." together.
   const splitOptions = combined
     .split(/(?:(?<=^)|(?<=\s))(?=[A-Da-d][\.\)]\s*)/)
     .map(normalizeOptionText)
@@ -1746,7 +1747,7 @@ async function ensureFullQuestionBankLoaded() {
           const data = await response.json();
           fullQuestionBank[subject] = normalizeJsonSubjectQuestions(data);
         } catch (error) {
-          console.warn(`Could not load ${file} for ${subject}; using inline questions instead (${error?.message || error}).`);
+          console.warn(`Could not load ${file} for ${subject}; using inline questions instead, so fewer questions may be available (${error?.message || error}).`);
           fullQuestionBank[subject] = mergeQuestionSets(questionBank[subject] || [], []);
         }
       })
@@ -1768,7 +1769,7 @@ function getSubjectQuestionTotal(subject) {
   const total = getSubjectQuestions(subject, true).length;
   if (total === 0) {
     console.warn(`No questions found for subject "${subject}".`);
-    return 1;
+    return 0;
   }
   return total;
 }
@@ -1885,7 +1886,7 @@ function updateHomeCardProgress() {
     const el = document.getElementById(`home-prog-${key}`);
     if (!el) return;
     const s        = p.subjects[key] || createEmptySubjectProgress();
-    const total    = getSubjectQuestionTotal(key);
+    const total    = getSubjectQuestionTotal(key) || 1;
     const attempted = s.attemptedQuestions?.length || 0;
     const pct      = Math.round((attempted / total) * 100);
     el.querySelector('.card-mini-fill').style.width = pct + '%';
@@ -1986,7 +1987,7 @@ function renderProgressDashboard() {
     const s     = p.subjects[key] || createEmptySubjectProgress();
     const meta  = subjectMeta[key];
     const clr   = SUBJ_COLORS[key];
-    const total = getSubjectQuestionTotal(key);
+    const total = getSubjectQuestionTotal(key) || 1;
     const att   = s.attemptedQuestions?.length || 0;
     const pct   = Math.round((att / total) * 100);
     const acc   = s.accuracy || 0;
