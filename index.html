@@ -1508,6 +1508,9 @@ let lastConfig = {};
 let quizMode = 'all'; // 'all' | 'unique'
 let currentExamTitle = '';
 let questionOutcomes = [];
+let retryChanceUsed = false;
+let retryRoundActive = false;
+let baseAttemptSnapshot = null;
 
 // Subject meta
 const subjectMeta = {
@@ -2247,6 +2250,9 @@ async function startExam() {
   skippedCount = 0;
   wrongAnswers = [];
   questionOutcomes = [];
+  retryChanceUsed = false;
+  retryRoundActive = false;
+  baseAttemptSnapshot = null;
   currentExamTitle = subjectMeta[currentSubject].name[currentLang];
 
   document.getElementById('exam-subject-name').textContent = currentExamTitle;
@@ -2439,34 +2445,106 @@ function nextQuestion() {
   }
 }
 
+function offerIncorrectRetryChance() {
+  if (
+    retryRoundActive ||
+    retryChanceUsed ||
+    !baseAttemptSnapshot ||
+    !Array.isArray(baseAttemptSnapshot.wrongAnswers) ||
+    baseAttemptSnapshot.wrongAnswers.length === 0
+  ) {
+    return;
+  }
+
+  retryChanceUsed = true;
+  const msg = currentLang === 'hi'
+    ? 'क्या आप गलत प्रश्न दोबारा हल करके अपना अंतिम स्कोर बेहतर करना चाहते हैं?\n\nध्यान दें: आपको केवल एक ही मौका मिलेगा।'
+    : 'Do you want to retry the incorrect questions to improve your final score?\n\nNote: You will get only ONE chance.';
+
+  if (!confirm(msg)) return;
+
+  retryRoundActive = true;
+  currentQuestions = baseAttemptSnapshot.wrongAnswers.map(({ q }) => cloneQuestionWithShuffledOptions(q));
+  currentQIndex = 0;
+  score = 0;
+  maxScore = currentQuestions.reduce((acc, q) => acc + diffMarks[q.diff], 0);
+  correctCount = 0;
+  incorrectCount = 0;
+  skippedCount = 0;
+  wrongAnswers = [];
+  questionOutcomes = [];
+
+  currentExamTitle = currentLang === 'hi'
+    ? `${baseAttemptSnapshot.examTitle} · गलत प्रश्न पुनः प्रयास`
+    : `${baseAttemptSnapshot.examTitle} · Incorrect Retry`;
+
+  document.getElementById('exam-subject-name').textContent = currentExamTitle;
+  document.getElementById('nav-title').textContent = currentExamTitle;
+  document.getElementById('live-score').textContent = '0';
+
+  showScreen('screen-exam');
+  renderQuestion();
+}
+
 // ═══════════════════════════════════════════════
 //  RESULTS
 // ═══════════════════════════════════════════════
 function showResults() {
   stopTimer();
   document.getElementById('progress-fill').style.width = '100%';
+  const wasRetryRound = retryRoundActive;
 
-  // Persist this quiz attempt in the user's anonymous history
-  recordQuizAttempt(currentSubject, currentQuestions, {
-    correct: correctCount,
-    wrong:   incorrectCount,
-    skipped: skippedCount,
-    score,
-    maxScore
-  });
-  updateHomeCardProgress();
+  if (!wasRetryRound) {
+    // Persist this quiz attempt in the user's anonymous history
+    recordQuizAttempt(currentSubject, currentQuestions, {
+      correct: correctCount,
+      wrong:   incorrectCount,
+      skipped: skippedCount,
+      score,
+      maxScore
+    });
+    updateHomeCardProgress();
+  }
 
-  const accuracy = currentQuestions.length > 0
+  let displayScore = score;
+  let displayMaxScore = maxScore;
+  let displayCorrect = correctCount;
+  let displayIncorrect = incorrectCount;
+  let displaySkipped = skippedCount;
+  let displayAccuracy = currentQuestions.length > 0
     ? Math.round((correctCount / currentQuestions.length) * 100) : 0;
-  const pct = maxScore > 0 ? (score / maxScore) * 100 : 0;
 
-  document.getElementById('results-subject-name').textContent = currentExamTitle;
-  document.getElementById('final-score').textContent = score;
-  document.getElementById('max-score').textContent = '/ ' + maxScore;
-  document.getElementById('res-correct').textContent = correctCount;
-  document.getElementById('res-incorrect').textContent = incorrectCount;
-  document.getElementById('res-skipped').textContent = skippedCount;
-  document.getElementById('res-accuracy').textContent = accuracy + '%';
+  if (!wasRetryRound) {
+    baseAttemptSnapshot = {
+      examTitle: currentExamTitle,
+      score,
+      maxScore,
+      correctCount,
+      totalQuestions: currentQuestions.length,
+      wrongAnswers: wrongAnswers.map(({ q, chosen }) => ({ q, chosen }))
+    };
+  } else if (baseAttemptSnapshot) {
+    displayScore = baseAttemptSnapshot.score + score;
+    displayMaxScore = baseAttemptSnapshot.maxScore;
+    displayCorrect = baseAttemptSnapshot.correctCount + correctCount;
+    displayIncorrect = incorrectCount;
+    displaySkipped = skippedCount;
+    displayAccuracy = baseAttemptSnapshot.totalQuestions > 0
+      ? Math.round((displayCorrect / baseAttemptSnapshot.totalQuestions) * 100)
+      : 0;
+  }
+
+  const pct = displayMaxScore > 0 ? (displayScore / displayMaxScore) * 100 : 0;
+
+  document.getElementById('results-subject-name').textContent = wasRetryRound
+    ? (currentLang === 'hi' ? `${baseAttemptSnapshot?.examTitle || currentExamTitle} · अंतिम परिणाम` : `${baseAttemptSnapshot?.examTitle || currentExamTitle} · Final Result`)
+    : currentExamTitle;
+  document.getElementById('final-score').textContent = displayScore;
+  document.getElementById('max-score').textContent = '/ ' + displayMaxScore;
+  document.getElementById('res-correct').textContent = displayCorrect;
+  document.getElementById('res-incorrect').textContent = displayIncorrect;
+  document.getElementById('res-skipped').textContent = displaySkipped;
+  document.getElementById('res-accuracy').textContent = displayAccuracy + '%';
 
   // Score circle color
   const circle = document.getElementById('score-circle');
@@ -2510,6 +2588,12 @@ function showResults() {
   }
 
   showScreen('screen-results');
+  if (!wasRetryRound && wrongAnswers.length > 0 && !retryChanceUsed) {
+    setTimeout(offerIncorrectRetryChance, 180);
+  }
+  if (wasRetryRound) {
+    retryRoundActive = false;
+  }
 }
 
 function retakeTest() {
