@@ -10,10 +10,10 @@ A modern, bilingual mock test platform for **Master of Arts in Journalism & Mass
 
 | Subject | Course Code | Questions | Units |
 |---|---|---|---|
-| 📻 Radio Broadcasting | 01196003 | 50 | 5 |
-| 💻 Information & Communication Technology | 01196004 | 50 | 5 |
-| 🌐 Development & International Communication | — | 50 | 4 |
-| 🏛️ Iconic Personalities of Media | 02196002 | 50 | 2 |
+| 📻 Radio Broadcasting | 01196003 | 250 | 5 |
+| 💻 Information & Communication Technology | 01196004 | 250 | 5 |
+| 🌐 Development & International Communication | — | 250 | 5 |
+| 🏛️ Iconic Personalities of Media | 02196002 | 250 | 2 |
 
 ---
 
@@ -24,6 +24,7 @@ A modern, bilingual mock test platform for **Master of Arts in Journalism & Mass
 - **Countdown Timer** — Animated ring timer per question (30s / 45s / 60s / 90s / 2min or off)
 - **Hindi / English Toggle** — Switch the entire interface and questions to Hindi or English
 - **Smart Filters** — Filter by Unit, Difficulty level, and number of questions
+- **Subject-wise Full Bank Loading** — “All Questions” loads the complete JSON bank for the selected subject only
 - **Results Summary** — Score, accuracy, correct/incorrect/skipped breakdown
 - **Wrong Answer Review** — See every missed question with the correct answer at the end
 - **Retake Test** — Instantly reshuffle and retake with the same settings
@@ -32,17 +33,43 @@ A modern, bilingual mock test platform for **Master of Arts in Journalism & Mass
 
 ---
 
+## 🧾 About the Website
+
+This website is a browser-based MAJMC mock test platform for Semester II students. It combines subject-wise question banks, bilingual UI support, timer-based practice, tiered scoring, wrong-answer review, and local progress tracking in one static site.
+
+You can:
+
+- choose a subject and start practicing instantly
+- filter by unit, difficulty, and number of questions
+- use **All Questions** to load the complete JSON bank for the selected subject
+- review your performance immediately after every test
+- track progress locally in the browser without signing in
+
+The site is built with HTML, Tailwind CSS via CDN, and vanilla JavaScript, with separate JSON files for the full subject banks.
+
+---
+
 ## 🚀 How to Use Locally
 
-No installation needed. Just download `index.html` and open it in any browser.
+No installation is required for the main interface. Open `index.html` in any browser.
+
+> Note: the **All Questions** option reads the subject JSON files, so serving the folder through a simple local web server is recommended for full subject-bank loading.
 
 ```
-Double-click index.html → Opens in browser → Start testing
+python3 -m http.server 8000
+# then open http://localhost:8000/
 ```
 
 ---
 
 ## ➕ How to Add More Questions
+
+There are now two question sources:
+
+1. The quick in-page question bank inside `index.html`
+2. The complete subject JSON banks used by the **All Questions** option
+
+### Update the in-page bank
 
 Open `index.html` in any text editor, find the `questionBank` object inside the `<script>` tag, and add to the relevant subject array:
 
@@ -60,13 +87,28 @@ Open `index.html` in any text editor, find the `questionBank` object inside the 
 
 **Scoring is automatic** — `easy` gives 1 mark, `moderate` gives 5, `hard` gives 10.
 
+### Update the full subject banks
+
+Edit the relevant JSON file:
+
+- `radio.json`
+- `information_communication_technology.json`
+- `dev_international_comm.json`
+- `iconic_personalities.json`
+
+These JSON files are normalized by the website and used when the user selects **All Questions** for a subject.
+
 ---
 
 ## 🗂️ Project Structure
 
 ```
-index.html   ← Entire app (HTML + CSS + JS + Question Bank in one file)
-README.md    ← This file
+index.html                                ← Entire app UI, logic, and quick question bank
+radio.json                                ← Full Radio question bank
+information_communication_technology.json ← Full ICT question bank
+dev_international_comm.json               ← Full Development & International Communication bank
+iconic_personalities.json                 ← Full Iconic Personalities bank
+README.md                                 ← This file
 ```
 
 ---
