@@ -1942,18 +1942,6 @@ function updateHomeCardProgress() {
   });
 }
 
-// ── Show "all questions attempted" inline message ──
-function showAllAttemptedMessage(msg) {
-  const existing = document.getElementById('unique-all-done-msg');
-  if (existing) existing.remove();
-  const el = document.createElement('div');
-  el.id = 'unique-all-done-msg';
-  el.className = 'all-done-msg';
-  el.textContent = msg;
-  const actionRow = document.querySelector('#screen-config .action-row');
-  actionRow.parentNode.insertBefore(el, actionRow);
-}
-
 // ── Update unique mode description with live count ──
 function updateUniqueModeDesc() {
   if (!currentSubject) return;
@@ -2167,8 +2155,6 @@ function resetCurrentSubjectProgress() {
 
   updateHomeCardProgress();
   updateUniqueModeDesc();
-  const prevMsg = document.getElementById('unique-all-done-msg');
-  if (prevMsg) prevMsg.remove();
   showToast(currentLang === 'hi' ? 'विषय प्रगति रीसेट हो गई!' : 'Subject progress reset!');
 }
 
@@ -2259,9 +2245,6 @@ function selectSubject(subject) {
 
   showScreen('screen-config');
   updateUniqueModeDesc();
-  // Clear any leftover "all attempted" message from a previous visit
-  const prevMsg = document.getElementById('unique-all-done-msg');
-  if (prevMsg) prevMsg.remove();
 }
 
 // ═══════════════════════════════════════════════
@@ -2281,10 +2264,6 @@ async function startExam() {
 
   lastConfig = { unitFilter, diffFilter, qCountVal, quizMode };
 
-  // Remove any leftover "all done" notice
-  const prevMsg = document.getElementById('unique-all-done-msg');
-  if (prevMsg) prevMsg.remove();
-
   const sourcePool = getSubjectQuestions(currentSubject, useFullSubjectBank)
     .map(q => ({ ...q, __subject: currentSubject }));
 
@@ -2303,7 +2282,6 @@ async function startExam() {
           ? 'आपने इस विषय के सभी प्रश्न पहले ही हल कर लिए हैं।'
           : 'You have already attempted all questions in this subject.';
         alert(msg);
-        showAllAttemptedMessage(msg);
         return;
       }
     pool = uniquePool;
