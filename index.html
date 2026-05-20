@@ -1849,7 +1849,7 @@ function recordQuizAttempt(subject, questions, results, wrongQuestionIds = []) {
   const wrongSet = new Set(subj.incorrectQuestionIds || []);
   const wrongIdsThisAttempt = new Set((wrongQuestionIds || []).filter(Boolean));
   questions.forEach(q => {
-    if (!q?._id) return;
+    if (!q._id) return;
     if (wrongIdsThisAttempt.has(q._id)) wrongSet.add(q._id);
     else wrongSet.delete(q._id);
   });
