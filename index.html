@@ -674,7 +674,7 @@
   /* ── Quiz Mode Selector ── */
   .mode-selector {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     gap: 12px;
     margin-bottom: 24px;
   }
@@ -697,6 +697,8 @@
   .mode-option .mode-icon { font-size: 1.5rem; margin-bottom: 6px; }
   .mode-option .mode-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
   .mode-option .mode-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+  .mode-option.mode-hidden { display: none; }
+  .mode-option.mode-disabled { opacity: 0.55; }
 
   /* ── Subject Card Mini-Progress ── */
   .card-mini-progress {
@@ -1008,6 +1010,17 @@
           <div class="mode-title" data-en="Practice Unique" data-hi="नए प्रश्न">Practice Unique</div>
           <div class="mode-desc" id="unique-mode-desc" data-en="Only unattempted questions" data-hi="केवल नए प्रश्न">Only unattempted questions</div>
         </label>
+        <label class="mode-option mode-hidden" id="mode-incorrect-label">
+          <input type="radio" name="quiz-mode" value="incorrect" style="display:none;">
+          <div class="mode-icon">🎯</div>
+          <div class="mode-title" data-en="Try Incorrect" data-hi="गलत प्रश्न फिर से">Try Incorrect</div>
+          <div class="mode-desc" id="incorrect-mode-desc" data-en="Retry previously incorrect questions" data-hi="पहले गलत किए गए प्रश्न फिर से">Retry previously incorrect questions</div>
+        </label>
+      </div>
+      <div style="margin-top:-10px; margin-bottom:8px; text-align:right;">
+        <button class="btn-secondary" onclick="resetCurrentSubjectProgress()" style="padding:8px 14px; font-size:0.82rem; border-color:rgba(239,68,68,0.3); color:var(--ruby);">
+          🗑️ <span data-en="Reset Subject Progress" data-hi="विषय प्रगति रीसेट करें">Reset Subject Progress</span>
+        </button>
       </div>
     </div>
 
@@ -1505,7 +1518,7 @@ let timerDuration = 45;
 let timeLeft = 45;
 let wrongAnswers = [];
 let lastConfig = {};
-let quizMode = 'all'; // 'all' | 'unique'
+let quizMode = 'all'; // 'all' | 'unique' | 'incorrect'
 let currentExamTitle = '';
 let questionOutcomes = [];
 let retryChanceUsed = false;
@@ -1605,7 +1618,7 @@ function getGuestId() {
 /** Create a blank per-subject progress object */
 function createEmptySubjectProgress() {
   return { attemptedQuestions: [], correct: 0, wrong: 0, skipped: 0, accuracy: 0,
-           totalAttempted: 0, recentQuizzes: [] };
+           totalAttempted: 0, recentQuizzes: [], incorrectQuestionIds: [] };
 }
 
 /** Load progress from localStorage (returns null on error) */
@@ -1629,7 +1642,10 @@ function getUserProgress() {
           streak: { current: 0, lastActiveDate: null } };
   }
   // Ensure every subject key is present
-  Object.keys(subjectMeta).forEach(k => { if (!p.subjects[k]) p.subjects[k] = createEmptySubjectProgress(); });
+  Object.keys(subjectMeta).forEach(k => {
+    if (!p.subjects[k]) p.subjects[k] = createEmptySubjectProgress();
+    if (!Array.isArray(p.subjects[k].incorrectQuestionIds)) p.subjects[k].incorrectQuestionIds = [];
+  });
   return p;
 }
 
@@ -1819,7 +1835,7 @@ function updateStreak(p) {
  * Record a completed quiz attempt in the user's history.
  * Accumulates unique attempted question IDs and running tallies.
  */
-function recordQuizAttempt(subject, questions, results) {
+function recordQuizAttempt(subject, questions, results, wrongQuestionIds = []) {
   const p    = getUserProgress();
   const subj = p.subjects[subject];
 
@@ -1828,6 +1844,16 @@ function recordQuizAttempt(subject, questions, results) {
   questions.forEach(q => { if (q._id) seen.add(q._id); });
   subj.attemptedQuestions = Array.from(seen);
   subj.totalAttempted     = subj.attemptedQuestions.length;
+
+  // Track pending incorrect questions for "Try Incorrect" mode
+  const wrongSet = new Set(subj.incorrectQuestionIds || []);
+  const wrongIdsThisAttempt = new Set((wrongQuestionIds || []).filter(Boolean));
+  questions.forEach(q => {
+    if (!q?._id) return;
+    if (wrongIdsThisAttempt.has(q._id)) wrongSet.add(q._id);
+    else wrongSet.delete(q._id);
+  });
+  subj.incorrectQuestionIds = Array.from(wrongSet);
 
   // Running totals
   subj.correct  += results.correct;
@@ -1865,6 +1891,13 @@ function filterUniquePool(subject, pool) {
   const p       = getUserProgress();
   const seen    = new Set(p.subjects[subject]?.attemptedQuestions || []);
   return pool.filter(q => q._id && !seen.has(q._id));
+}
+
+/** Return only questions from `pool` that were previously answered incorrectly */
+function filterIncorrectPool(subject, pool) {
+  const p = getUserProgress();
+  const wrongSet = new Set(p.subjects[subject]?.incorrectQuestionIds || []);
+  return pool.filter(q => q._id && wrongSet.has(q._id));
 }
 
 // ── Relative time helper ──
@@ -1937,6 +1970,33 @@ function updateUniqueModeDesc() {
   if (descEl) {
     descEl.removeAttribute('data-en'); descEl.removeAttribute('data-hi');
     descEl.textContent = `${uniqueCount} unattempted out of ${pool.length}`;
+  }
+
+  const incorrectLabel = document.getElementById('mode-incorrect-label');
+  const incorrectDesc = document.getElementById('incorrect-mode-desc');
+  const attemptedCount = getUserProgress().subjects[currentSubject]?.attemptedQuestions?.length || 0;
+  const incorrectCount = filterIncorrectPool(currentSubject, pool).length;
+
+  if (incorrectLabel) {
+    const shouldShowIncorrectMode = attemptedCount > 0;
+    incorrectLabel.classList.toggle('mode-hidden', !shouldShowIncorrectMode);
+    incorrectLabel.classList.toggle('mode-disabled', incorrectCount === 0);
+
+    const incorrectRadio = incorrectLabel.querySelector('input[name="quiz-mode"]');
+    if (!shouldShowIncorrectMode && incorrectRadio?.checked) {
+      const allRadio = document.querySelector('input[name="quiz-mode"][value="all"]');
+      const allLabel = document.getElementById('mode-all-label');
+      if (allRadio && allLabel) {
+        allRadio.checked = true;
+        document.querySelectorAll('.mode-option').forEach(o => o.classList.remove('selected'));
+        allLabel.classList.add('selected');
+      }
+    }
+  }
+
+  if (incorrectDesc) {
+    incorrectDesc.removeAttribute('data-en'); incorrectDesc.removeAttribute('data-hi');
+    incorrectDesc.textContent = `${incorrectCount} incorrect available`;
   }
 }
 
@@ -2093,6 +2153,25 @@ function resetProgress() {
   showToast(currentLang === 'hi' ? 'प्रगति रीसेट हो गई!' : 'Progress reset!');
 }
 
+// ── Reset only current subject progress (from config screen) ──
+function resetCurrentSubjectProgress() {
+  if (!currentSubject) return;
+  const msg = currentLang === 'hi'
+    ? 'क्या आप इस विषय की प्रगति रीसेट करना चाहते हैं?'
+    : 'Reset progress for this subject?';
+  if (!confirm(msg)) return;
+
+  const p = getUserProgress();
+  p.subjects[currentSubject] = createEmptySubjectProgress();
+  saveProgress(p);
+
+  updateHomeCardProgress();
+  updateUniqueModeDesc();
+  const prevMsg = document.getElementById('unique-all-done-msg');
+  if (prevMsg) prevMsg.remove();
+  showToast(currentLang === 'hi' ? 'विषय प्रगति रीसेट हो गई!' : 'Subject progress reset!');
+}
+
 // ── Export progress as JSON ──
 function exportProgress() {
   const p = getUserProgress();
@@ -2220,14 +2299,25 @@ async function startExam() {
     let uniquePool = [];
       uniquePool = filterUniquePool(currentSubject, pool);
       if (uniquePool.length === 0) {
-        showAllAttemptedMessage(
-          currentLang === 'hi'
-            ? 'आपने इस विषय के सभी प्रश्न पहले ही हल कर लिए हैं।'
-            : 'You have already attempted all questions in this subject.'
-        );
+        const msg = currentLang === 'hi'
+          ? 'आपने इस विषय के सभी प्रश्न पहले ही हल कर लिए हैं।'
+          : 'You have already attempted all questions in this subject.';
+        alert(msg);
+        showAllAttemptedMessage(msg);
         return;
       }
     pool = uniquePool;
+  }
+
+  if (quizMode === 'incorrect') {
+    const incorrectPool = filterIncorrectPool(currentSubject, pool);
+    if (incorrectPool.length === 0) {
+      alert(currentLang === 'hi'
+        ? 'इस फ़िल्टर में दोबारा हल करने के लिए गलत प्रश्न नहीं मिले।'
+        : 'No incorrect questions available for retry in this filter.');
+      return;
+    }
+    pool = incorrectPool;
   }
 
   // Shuffle
@@ -2503,7 +2593,7 @@ function showResults() {
       skipped: skippedCount,
       score,
       maxScore
-    });
+    }, wrongAnswers.map(({ q }) => q?._id).filter(Boolean));
     updateHomeCardProgress();
   }
 
@@ -2629,6 +2719,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Quiz mode selector interactivity
   document.querySelectorAll('.mode-option').forEach(opt => {
     opt.addEventListener('click', function() {
+      if (this.classList.contains('mode-disabled')) return;
       document.querySelectorAll('.mode-option').forEach(o => o.classList.remove('selected'));
       this.classList.add('selected');
       // Sync the hidden radio button
