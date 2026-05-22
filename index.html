@@ -1537,6 +1537,7 @@ const subjectMeta = {
 const diffMarks = { easy: 1, moderate: 5, hard: 10 };
 const diffLabels = { easy: { en: "Easy · 1 mark", hi: "आसान · 1 अंक" }, moderate: { en: "Moderate · 5 marks", hi: "मध्यम · 5 अंक" }, hard: { en: "Hard · 10 marks", hi: "कठिन · 10 अंक" } };
 const diffColors = { easy: "var(--emerald)", moderate: "var(--gold)", hard: "var(--ruby)" };
+const EXPECTED_OPTIONS_COUNT = 4;
 const subjectJsonFiles = {
   radio: 'radio.json',
   ict: 'information_communication_technology.json',
@@ -1664,7 +1665,12 @@ function buildQuestionIds() {
 }
 
 function canonicalQuestionKey(text) {
-  return String(text || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  return String(text || '')
+    .toLowerCase()
+    .replace(/["'“”‘’`´]/g, '')
+    .replace(/[^a-z0-9\u0900-\u097f]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function romanToNumber(value) {
@@ -1721,11 +1727,11 @@ function normalizeOptions(values) {
     .map(normalizeOptionText)
     .filter(Boolean);
 
-  if (splitOptions.length >= 4) {
-    return splitOptions.slice(0, 4);
+  if (splitOptions.length >= EXPECTED_OPTIONS_COUNT) {
+    return splitOptions.slice(0, EXPECTED_OPTIONS_COUNT);
   }
 
-  return rawOptions.map(normalizeOptionText).filter(Boolean).slice(0, 4);
+  return rawOptions.map(normalizeOptionText).filter(Boolean).slice(0, EXPECTED_OPTIONS_COUNT);
 }
 
 function mergeQuestionSets(primaryQuestions, secondaryQuestions) {
@@ -1744,6 +1750,51 @@ function mergeQuestionSets(primaryQuestions, secondaryQuestions) {
   return merged;
 }
 
+function hasHindiQuestionText(question) {
+  return /[\u0900-\u097f]/.test(String(question?.qHi || ''));
+}
+
+function hasHindiOptions(question) {
+  return Array.isArray(question?.optsHi)
+    && question.optsHi.length === EXPECTED_OPTIONS_COUNT
+    && question.optsHi.every(opt => /[\u0900-\u097f]/.test(String(opt || '')));
+}
+
+function enrichQuestionsWithHindiFallback(questions, translationSource) {
+  const hindiMap = new Map();
+
+  (translationSource || []).forEach(question => {
+    const key = canonicalQuestionKey(question?.q);
+    const hasQHi = hasHindiQuestionText(question);
+    const hasOptsHi = hasHindiOptions(question);
+    if (!key || (!hasQHi && !hasOptsHi)) return;
+    const existing = hindiMap.get(key);
+    if (!existing) {
+      hindiMap.set(key, {
+        qHi: hasQHi ? question.qHi : null,
+        optsHi: hasOptsHi ? question.optsHi.slice(0, EXPECTED_OPTIONS_COUNT) : null
+      });
+      return;
+    }
+    if (!existing.qHi && hasQHi) existing.qHi = question.qHi;
+    if (!existing.optsHi && hasOptsHi) existing.optsHi = question.optsHi.slice(0, EXPECTED_OPTIONS_COUNT);
+  });
+
+  return (questions || []).map(question => {
+    const key = canonicalQuestionKey(question?.q);
+    const hindi = key ? hindiMap.get(key) : null;
+    if (!hindi) return question;
+
+    return {
+      ...question,
+      qHi: question.qHi || hindi.qHi,
+      optsHi: hasHindiOptions(question)
+        ? question.optsHi
+        : hindi.optsHi
+    };
+  });
+}
+
 function normalizeJsonSubjectQuestions(data) {
   return Object.entries(data.units || {}).flatMap(([unitName, questions]) =>
     (questions || []).map(question => {
@@ -1757,7 +1808,7 @@ function normalizeJsonSubjectQuestions(data) {
       normalized._id = hashQuestion(normalized);
       return normalized;
     })
-  ).filter(question => question.q && question.opts.length === 4);
+  ).filter(question => question.q && question.opts.length === EXPECTED_OPTIONS_COUNT);
 }
 
 async function ensureFullQuestionBankLoaded() {
@@ -1768,7 +1819,11 @@ async function ensureFullQuestionBankLoaded() {
           const response = await fetch(file);
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
-          fullQuestionBank[subject] = normalizeJsonSubjectQuestions(data);
+          const normalizedQuestions = normalizeJsonSubjectQuestions(data);
+          fullQuestionBank[subject] = enrichQuestionsWithHindiFallback(
+            normalizedQuestions,
+            questionBank[subject] || []
+          );
         } catch (error) {
           console.warn(`Failed to load ${file} for ${subject}: ${error?.message || String(error)}. Falling back to inline questions; reduced question count expected.`);
           fullQuestionBank[subject] = mergeQuestionSets(questionBank[subject] || [], []);
