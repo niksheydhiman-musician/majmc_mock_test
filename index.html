@@ -1537,6 +1537,7 @@ const subjectMeta = {
 const diffMarks = { easy: 1, moderate: 5, hard: 10 };
 const diffLabels = { easy: { en: "Easy · 1 mark", hi: "आसान · 1 अंक" }, moderate: { en: "Moderate · 5 marks", hi: "मध्यम · 5 अंक" }, hard: { en: "Hard · 10 marks", hi: "कठिन · 10 अंक" } };
 const diffColors = { easy: "var(--emerald)", moderate: "var(--gold)", hard: "var(--ruby)" };
+const EXPECTED_OPTIONS_COUNT = 4;
 const subjectJsonFiles = {
   radio: 'radio.json',
   ict: 'information_communication_technology.json',
@@ -1726,11 +1727,11 @@ function normalizeOptions(values) {
     .map(normalizeOptionText)
     .filter(Boolean);
 
-  if (splitOptions.length >= 4) {
-    return splitOptions.slice(0, 4);
+  if (splitOptions.length >= EXPECTED_OPTIONS_COUNT) {
+    return splitOptions.slice(0, EXPECTED_OPTIONS_COUNT);
   }
 
-  return rawOptions.map(normalizeOptionText).filter(Boolean).slice(0, 4);
+  return rawOptions.map(normalizeOptionText).filter(Boolean).slice(0, EXPECTED_OPTIONS_COUNT);
 }
 
 function mergeQuestionSets(primaryQuestions, secondaryQuestions) {
@@ -1755,7 +1756,7 @@ function hasHindiQuestionText(question) {
 
 function hasHindiOptions(question) {
   return Array.isArray(question?.optsHi)
-    && question.optsHi.length === 4
+    && question.optsHi.length === EXPECTED_OPTIONS_COUNT
     && question.optsHi.every(opt => /[\u0900-\u097f]/.test(String(opt || '')));
 }
 
@@ -1771,12 +1772,12 @@ function enrichQuestionsWithHindiFallback(questions, translationSource) {
     if (!existing) {
       hindiMap.set(key, {
         qHi: hasQHi ? question.qHi : null,
-        optsHi: hasOptsHi ? question.optsHi.slice(0, 4) : null
+        optsHi: hasOptsHi ? question.optsHi.slice(0, EXPECTED_OPTIONS_COUNT) : null
       });
       return;
     }
     if (!existing.qHi && hasQHi) existing.qHi = question.qHi;
-    if (!existing.optsHi && hasOptsHi) existing.optsHi = question.optsHi.slice(0, 4);
+    if (!existing.optsHi && hasOptsHi) existing.optsHi = question.optsHi.slice(0, EXPECTED_OPTIONS_COUNT);
   });
 
   return (questions || []).map(question => {
@@ -1787,7 +1788,7 @@ function enrichQuestionsWithHindiFallback(questions, translationSource) {
     return {
       ...question,
       qHi: question.qHi || hindi.qHi,
-      optsHi: (Array.isArray(question.optsHi) && question.optsHi.length === 4)
+      optsHi: hasHindiOptions(question)
         ? question.optsHi
         : hindi.optsHi
     };
@@ -1807,7 +1808,7 @@ function normalizeJsonSubjectQuestions(data) {
       normalized._id = hashQuestion(normalized);
       return normalized;
     })
-  ).filter(question => question.q && question.opts.length === 4);
+  ).filter(question => question.q && question.opts.length === EXPECTED_OPTIONS_COUNT);
 }
 
 async function ensureFullQuestionBankLoaded() {
