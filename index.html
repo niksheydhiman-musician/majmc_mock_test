@@ -1767,12 +1767,16 @@ function enrichQuestionsWithHindiFallback(questions, translationSource) {
     const hasQHi = hasHindiQuestionText(question);
     const hasOptsHi = hasHindiOptions(question);
     if (!key || (!hasQHi && !hasOptsHi)) return;
-    if (!hindiMap.has(key)) {
+    const existing = hindiMap.get(key);
+    if (!existing) {
       hindiMap.set(key, {
         qHi: hasQHi ? question.qHi : null,
         optsHi: hasOptsHi ? question.optsHi.slice(0, 4) : null
       });
+      return;
     }
+    if (!existing.qHi && hasQHi) existing.qHi = question.qHi;
+    if (!existing.optsHi && hasOptsHi) existing.optsHi = question.optsHi.slice(0, 4);
   });
 
   return (questions || []).map(question => {
