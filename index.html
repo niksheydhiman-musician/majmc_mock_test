@@ -1764,11 +1764,13 @@ function enrichQuestionsWithHindiFallback(questions, translationSource) {
 
   (translationSource || []).forEach(question => {
     const key = canonicalQuestionKey(question?.q);
-    if (!key || (!hasHindiQuestionText(question) && !hasHindiOptions(question))) return;
+    const hasQHi = hasHindiQuestionText(question);
+    const hasOptsHi = hasHindiOptions(question);
+    if (!key || (!hasQHi && !hasOptsHi)) return;
     if (!hindiMap.has(key)) {
       hindiMap.set(key, {
-        qHi: hasHindiQuestionText(question) ? question.qHi : null,
-        optsHi: hasHindiOptions(question) ? question.optsHi.slice(0, 4) : null
+        qHi: hasQHi ? question.qHi : null,
+        optsHi: hasOptsHi ? question.optsHi.slice(0, 4) : null
       });
     }
   });
@@ -1780,10 +1782,10 @@ function enrichQuestionsWithHindiFallback(questions, translationSource) {
 
     return {
       ...question,
-      qHi: question.qHi || hindi.qHi || undefined,
+      qHi: question.qHi || hindi.qHi,
       optsHi: (Array.isArray(question.optsHi) && question.optsHi.length === 4)
         ? question.optsHi
-        : (hindi.optsHi || undefined)
+        : hindi.optsHi
     };
   });
 }
